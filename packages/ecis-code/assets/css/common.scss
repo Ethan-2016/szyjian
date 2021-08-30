@@ -1,0 +1,26 @@
+/* 表框的颜色 */
+@import "../../assets/css/_handle.scss";
+
+body {
+  margin: 0;
+
+  .child-page {
+    .el-form-item__label {
+      height: 35px;
+      line-height: 35px;
+    }
+
+    .el-form-item__content {
+      height: 35px;
+      line-height: 35px;
+    }
+
+    .pagination-content {
+      width: 99%;
+      position: fixed;
+      bottom: 50px;
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}
