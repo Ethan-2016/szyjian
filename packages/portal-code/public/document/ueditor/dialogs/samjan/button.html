@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>按钮控件</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th><span>控件名称</span><span class="label label-important">*</span></th>
+        <th><span>控件ID</span></th>
+        <th><span>默认值</span></th>
+      </tr>
+      <tr>
+        <td><input type="text" id="controlName" placeholder="必填项目" /></td>
+        <td><input type="text" id="controlId" placeholder="必填项目" /></td>
+        <td><input type="text" id="defaultValue" placeholder="可选项目" /></td>
+      </tr>
+      <tr>
+        <th>事件类型</th>
+        <th colspan="2"><span> 最小宽度 & 字体大小</span></th>
+      </tr>
+      <tr>
+        <td>
+          <select name="" id="btnType">
+            <option value="0">模板选择</option>
+          </select>
+        </td>
+        <td colspan="2">
+          <input type="text" id="width" value="40" style="width: 38px;" /> &
+          <input type="text" id="fontSize" value="16" style="width: 38px;" />px
+        </td>
+      </tr>
+    </table>
+
+    <div class="foot-btn" style="margin: 10px;">
+      <button class="btn primary" id="add-option" onclick="fnAdd();">添加选项</button>
+    </div>
+    <table class="table emr-setting-table" id="tabs-table">
+      <tr>
+        <th colspan="2">标签</th>
+        <th>操作</th>
+      </tr>
+    </table>
+    <!-- <p>备注：</p> -->
+    <!-- <p>控件id值必须以“text_”前缀开头</p>
+    <p>事件名signEvent</p>
+    <p>事件类型为指纹时，建议高度45, 其他的建议30</p> -->
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'emrbutton';
+    var baseUrl = 'dialogs/samjan';
+
+    function $id(id) {
+      return document.getElementById(id);
+    }
+
+    window.onload = function() {
+      if (UE.plugins[thePlugin].editdom) {
+        var obj;
+        oNode = UE.plugins[thePlugin].editdom;
+        obj = eval('(' + oNode.getAttribute('obj') + ')');
+        for (var key in obj) {
+          if ($id(key)) {
+            $id(key).value = obj[key];
+          }
+        }
+
+         var texts = obj.btnsNameStr.split(",");
+
+        // for(var i = 0; i < tabsHead.length; i++){
+        //   texts.push(tabsHead[i].innerText);
+        // }
+        renderHtml('emr', 'tabs-table', texts);
+      }
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      if ($G('controlName').value === '') {
+        alert('控件名称不能为空');
+        return false;
+      }
+      var gTitle = $G('controlName').value.replace(/\"/g,"&quot;");
+      var controlId = $id('controlId').value;
+
+
+      var oTabsTable = document.getElementById('tabs-table');
+      var inputNodes = oTabsTable.getElementsByTagName('input');
+      let btnsNameArr = []
+      for(var i = 0; i < inputNodes.length; i++) {
+        btnsNameArr.push(inputNodes[i].value)
+      }
+      let btnsNameStr = btnsNameArr.join(',')
+      var obj = {
+        // buttonText: $G('buttonText').value || '',
+        // buttonEvent: $G('buttonEvent').value.trim() || '',
+        btnType: $G('btnType').value || '',
+        controlName: $id('controlName').value || '',
+        controlId: $id('controlId').value.trim() || '',
+        defaultValue: $id('defaultValue').value || '',
+        controlId: $G('controlId').value.trim() || '',
+        // signPicHeight: $G('signPicHeight').value.trim(),
+        componentType: 'emrbutton',
+        btnsNameStr: btnsNameStr
+      }
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      // var imgFieldstr = imgField(obj); 
+      
+      if(!oNode){
+        // var html = buttonHtml(obj);
+
+        var style = `min-height: 16px; min-width:${obj.width}px; font-size:${obj.fontSize}px; color: ${obj.fontColor};`;
+        var onclick = `window.parent.${obj.buttonEvent}`;
+        var html = `<span class="emr-field emr-plugin btn-group noprint" obj="${objstr}" id="${obj.controlId}"  title="${obj.controlName}" data-value="${obj.defaultValue}" emrplugin="emrbutton" contenteditable="false">`;
+          btnsNameArr.forEach((item, index)=>{
+            if(index){
+              html +=  `<span class="emr-field btn" id="${obj.controlId}-${index}" style="font-size: 16px; color: #0e4ddc; cursor:pointer; padding: 0 10px; border-left: 1px solid #ccc">${ item }</span>`
+            }else{
+              html +=  `<span class="emr-field btn" id="${obj.controlId}-${index}" style="font-size: 16px; color: #0e4ddc; cursor:pointer; padding: 0 10px;">${ item }</span>`
+            }
+          })
+        html +=  `</span>`;
+        editor.execCommand('inserthtml', html);
+          return true ;
+      } else {
+        oNode.setAttribute('obj', objstr);
+        oNode.setAttribute('title', obj.controlName);
+        let html = ''
+        btnsNameArr.forEach((item, index)=>{
+          if(index){
+            html +=  `<span class="emr-field btn" id="${obj.controlId}-${index}" style="font-size: 16px; color: #0e4ddc; cursor:pointer; padding: 0 10px; border-left: 1px solid #ccc">${ item }</span>`
+          }else{
+            html +=  `<span class="emr-field btn" id="${obj.controlId}-${index}" style="font-size: 16px; color: #0e4ddc; cursor:pointer; padding: 0 10px;">${ item }</span>`
+          }
+        })
+        oNode.innerHTML = html;
+        delete UE.plugins[thePlugin].editdom; 
+        return true;
+      }
+    };
+
+    function buttonHtml(obj){
+      // var imgFieldstr = imgField(obj);
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      var style = `min-height: 16px; min-width:${obj.width}px; font-size:${obj.fontSize}px; color: ${obj.fontColor};`;
+      var onclick = `window.parent.${obj.buttonEvent}`;
+      var button = `<button class="emr-field" onclick="${onclick}('${obj.controlId}', '${obj.btnType}')">${obj.buttonText}</button>`;
+      var html = `<span class="emr-field emr-plugin" obj="${objstr}" title="${obj.buttonText}" emrplugin="emrbutton" contenteditable="false">`;
+        
+      html +=  `</span>`;
+      
+      return html;
+    }
+
+    // 签名/指纹图片（样式）
+    function imgField(obj){
+      var imgSpanStyle = `display: inline-block; min-width: ${obj.btnType == 2 ? '45px' : '80px'}; border-bottom: 1px solid #333;`;
+      var imgStyle = `height: ${obj.signPicHeight}px;`;
+      var signHtml = `<span style="${imgSpanStyle}"><img id="${obj.controlId}" style="${imgStyle}"/></span>`;
+
+      return signHtml;
+    }
+
+    function fnAdd(){
+      renderHtml('emr', 'tabs-table');
+    }
+
+    function renderHtml(name, table, data, none){
+      var oTable = $G(table);
+      var oTbody = oTable.getElementsByTagName('tbody')[0];
+      
+      if(!data){
+        var oTr = document.createElement('tr');
+        var htmlstr = `<td colspan="2"><input type="text" placeholder="标签名称"/></td>`;
+            htmlstr += `<td><div class="btn-group"><button title="删除" class="btn small btn-default" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+            oTr.innerHTML = htmlstr;
+            oTbody.appendChild(oTr);
+      }else{
+        for(var i = 0; i < data.length; i++){
+          var htmlstr = '';
+          var oTr = document.createElement('tr');
+              htmlstr += `<td colspan="2"><input type="text" placeholder="选项名" value="${data[i]}"/></td>`;
+              htmlstr += `<td><div class="btn-group" style="display:${none};}"><button title="删除" class="btn small btn-default" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+              oTr.innerHTML = htmlstr;
+              oTbody.appendChild(oTr);
+          }
+      }
+    }
+
+    function deleteRow(obj){
+      var oTable = $G("tabs-table");
+      while(obj.tagName !='TR') {
+          obj = obj.parentNode;
+      }
+      oTable.deleteRow(obj.rowIndex);
+    }
+  </script>
+</body>
+</html>

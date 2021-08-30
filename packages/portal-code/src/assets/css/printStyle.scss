@@ -1,0 +1,66 @@
+@page {
+  size: A4;
+}
+
+#print-box {
+  font-size: 9pt !important;
+  background-color: red;
+}
+
+.head,
+.report-container,
+.footer {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 800pt !important;
+}
+.report-container {
+  height: 1200pt !important;
+}
+
+.head .main-info .info {
+  display: flex;
+  margin-right: 5pt !important;
+}
+.head .main-info .info label {
+  white-space: nowrap;
+}
+.head .main-info .info .unit {
+  white-space: nowrap;
+}
+.info .el-input input {
+  text-align: center;
+  width: 60pt;
+  padding: 0 !important;
+}
+.head .main-info .second-class .info input {
+  width: 45pt !important;
+}
+
+#printStyle .buttons {
+  display: none;
+}
+#printStyle .el-input__inner {
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid #ccc !important;
+}
+#printStyle input.el-input__inner::-webkit-input-placeholder{
+  color:#fff !important;
+}
+#printStyle .el-textarea__inner {
+  border-radius: 0;
+  resize: none;
+}
+#printStyle .el-select .el-input__suffix{
+  display: none;
+}
+#printStyle .analgesiaBox {
+  border: none;
+}
+.main-right{
+  visibility: hidden;
+}
+.printBtn{
+  display: none;
+}

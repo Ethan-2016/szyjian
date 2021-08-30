@@ -1,0 +1,396 @@
+/*可以在这里添加你自己的css*/
+html.view,
+body.view{
+    margin: 0;
+    font-size: 16px;
+    /* height: 100% !important; */
+    font-family: 宋体, SimSun;
+}
+body.view{
+    padding: 20px;
+}
+
+body.view.print .noprint {
+    display: none;
+}
+
+#ueditor, 
+.edui-default{
+    height: 100% !important;
+}
+.pagebreak{
+    box-sizing: border-box;
+}
+table{
+    border-collapse: collapse;
+    min-width: 96%;
+    /* overflow-x: auto; */
+}
+table th,
+table td{
+    padding: 1px 3px;
+    height: 26px;
+    border:1px solid #000;
+    box-sizing: border-box;
+    vertical-align: middle;
+    font-size: 13px;
+}
+.pageno{
+  page-break-before: auto;
+  page-break-after: always;
+  text-align: center;
+}
+/* logo样式设置，分医院设置开始 */
+.YanTian{
+    display: flex;
+    justify-content: flex-start;
+}
+/* logo样式设置，分医院设置结束 */
+
+/* pdf/打印纸张大小 */
+/* @page{
+    size: 297mm 210mm;
+} */
+@media print{
+    .paper{
+        width: 100%;
+        height: 383.3888mm;
+        position: relative;
+        box-sizing: border-box;
+        /* padding-top: 30px;  */
+        padding: 2mm 6mm;
+        page-break-before: auto;
+        page-break-after: always;
+    }
+    .landscape-paper{
+        width: 100%;
+        padding: 2mm 6mm;
+        position: relative;
+        box-sizing: border-box;
+        padding-top: 30px;
+        height: 209.3888mm;
+        page-break-before: auto;
+        page-break-after: always;
+        overflow: hidden;
+    }
+    .form-print-paper{
+        width: 100%;
+        /* height: 370.3888mm; */
+        /* padding: 2mm 6mm; */
+        position: relative;
+        box-sizing: border-box;
+        /* padding-top: 20px;  */
+        page-break-before: auto;
+        page-break-after: always;
+    }
+    /* .form-print-paper:first-child{
+        background-color: red;
+    } */
+    .paper:nth-child(2n+1){
+        padding-top: 30px;
+    }
+    .form-print-paper:nth-child(2n+1){
+        /* padding-top: 30px; */
+    }
+    .paper:nth-child(2n){
+        padding-top: 50px;
+    }
+    .form-print-paper:nth-child(2n){
+        padding-top: 20px;
+    }
+    .tips-box:nth-child(2n+1){
+        bottom: 76px;
+    }
+    .paper-number:nth-child(2n+1){
+        bottom: 46px;
+    }
+    .emr-plugin .emr-field-value,
+    .emr-plugin .square-radio:checked:before,
+    .emr-checkbox:checked:before,
+    .emr-select-box .emr-select-input,
+    .calendar-time, .calendar-date{
+        color: #000!important;
+    }
+}
+@media screen {
+    .paper{
+        /* padding: 2mm 6mm; */
+        position: relative;
+        box-sizing: border-box;
+        /* padding-top: 30px; */
+        height: 1449px;
+        page-break-before: auto;
+        page-break-after: always;
+        overflow: hidden;
+    }
+    .landscape-paper{
+        padding: 2mm 6mm;
+        position: relative;
+        box-sizing: border-box;
+        padding-top: 30px;
+        height: 209.3888mm;
+        page-break-before: auto;
+        page-break-after: always;
+        overflow: hidden;
+    }
+    .form-print-paper{
+        /* height: 370.3888mm; */
+        /* padding: 2mm 6mm; */
+        position: relative;
+        box-sizing: border-box;
+        /* padding-top: 30px;  */
+        page-break-before: always;
+        page-break-after: always;
+        overflow: hidden;
+    }
+    
+    .emr-plugin .emr-field-value,
+    .emr-plugin .square-radio:checked:before,
+    .emr-checkbox:checked:before,
+    .emr-select-box .emr-select-input,
+    .calendar-time, .calendar-date{
+        color: #0000ff!important;
+    }
+}
+.view .paper:first-child{
+    padding-top: 0;
+}
+.tips-box{
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    padding: 0 6mm;
+}
+.fileds-tr{
+    line-height: 1.05;
+}
+.paper-number{
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+
+.emr-field-left, .emr-field-right{
+    display: none!important;
+}
+/* 输入文本框 */
+
+.emr-field-value{
+    position:relative; 
+    display:inline-block; 
+    border-bottom:1px dashed #000!important;
+    vertical-align: middle;
+    line-height: 1em;
+}
+.emr-field-value:focus{
+   outline: none;
+}
+.emr-select-input{
+  border-bottom:1px dashed #000!important;
+}
+.emr-field[emrplugin="textarea"] .emr-field-value{
+  border-bottom:1px solid #000!important;
+}
+/* 自定义radio样式 */
+.emr-plugin .radio-label{
+    margin-right: 14px;
+}
+/* 注意有左右括号影响 */
+.emr-plugin .radio-label:nth-last-child(2){
+    margin-right: 0;
+}
+.emr-radio{
+    position: relative;
+}
+.emr-radio::before,
+.emr-radio:checked::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #000;
+    border-radius: 50%;
+    background-color: #fff;
+    text-align: center;
+}
+.emr-radio::before{
+    /* background: #fff url("../icons/o_radio.png") no-repeat center center;
+    background-size: 100%; */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #fff;
+}
+.emr-radio:checked::before{
+    /* background: #fff url("../icons/opt_radio_select.png") no-repeat center center;
+    background-size: 100%; */
+    content:'•';
+    color: #000;
+    line-height: 12px;
+    font-size: 24px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+/* 自定义checkbox样式 */
+.emr-checkbox{
+    position: relative;
+}
+.square-radio:before,
+.square-radio:checked:before,
+.emr-checkbox:before,
+.emr-checkbox:checked:before{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 0;
+    border: 1px solid #000;
+    background-color: #fff;
+}
+.square-radio:before,
+.emr-checkbox:before{
+    content:'';
+}
+.square-radio:checked:before,
+.emr-checkbox:checked:before{
+    content:'\2713';
+    /* font-weight: bold; */
+    color: #000;
+    line-height: 12px;
+    font-size: 12px;
+    text-align: center;
+}
+/* 单行文本输入框关联按钮 */
+.rele-event-btn{
+    height: 1.2em;
+    line-height: 1.2em;
+    margin-left: 2px;
+    color:blue;
+    text-decoration: none;
+}
+.table-wrapper::-webkit-scrollbar{
+    width: 0;
+}
+/* table tr td:nth-child(2n+1){
+    background-color: red;
+} */
+table tr td.oddtd-bg{
+    background-color: rgb(221, 237, 242);
+}
+table tr td.eventd-bg{
+    background-color: #ECF1F7;
+}
+/*tabs标签样式*/
+.emr-tab{
+	margin: 10px 0;
+}
+.emr-tab .emr-tab-list{
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	list-style: none;
+}
+.emr-tab .emr-tab-list .emr-tab-li{
+	/* float: left; */
+	display: inline-block;
+	padding: 5px 20px;
+	border:1px solid #ddd;
+	cursor: pointer;
+}
+.emr-tab .emr-tab-list .emr-tab-li .emr-tab-remove{
+	padding: 0 3px;
+	background-color: #ddd;
+	border-radius: 50%;
+	transition: all .3s linear;
+}
+.emr-tab .emr-tab-list .emr-tab-li .emr-tab-remove:hover{
+	color:#fff;
+}
+.emr-tab .emr-tab-list .emr-tab-li.active{
+	font-weight: bold;
+	border-bottom: none;
+}
+.emr-tab .emr-tab-list .emr-tab-li p{
+    margin: 0;
+}
+.emr-tab .emr-table-content{
+	min-height: 60px;
+}
+.emr-tab .content{
+    padding: 10px 0;
+    display: none;
+}
+/* 长表格竖向打印 */
+.table-bordered{
+    margin-top: 50px;
+    border-collapse: collapse;
+    /* border-top: 1px solid #666;
+    border-left: 1px solid #666; */
+}
+.table-bordered th,
+.table-bordered td{
+    /* border-right: 1px solid #666;
+    border-bottom: 1px solid #666; */
+    min-height: 20px;
+    height: auto;
+    padding: 0;
+}
+.print-table{
+    width: 100%;
+    /* border-right: 1px solid #000; */
+    /* border-bottom: 1px solid #000; */
+}
+.print-table table {
+    position: relative;
+    /* width: 100%; */
+    display: block;
+}
+.print-table .thead {
+    float: left;
+}
+.print-table tbody tr {
+    display: inline-block;
+}
+
+.print-table .thead th, .print-table td {
+    /* height: 45px; */
+    width: 98px !important;
+    display: block;
+    border:none;
+    border-left: 1px solid #000;
+    border-top: 1px solid #000;
+}
+
+.print-table tbody tr:last-child td{
+    border-right:1px solid #000;
+}
+.print-table .thead th:last-child, .print-table td:last-child{
+    border-bottom: 1px solid #000;
+}
+.edittr-bg{
+    /* background-color: #FFE599; */
+}
+.selecttr-bg{
+    /* background-color: #B8F1E9; */
+}
+.emr-field-value img{
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.is-white-paper .emr-plugin .emr-field-value,
+.is-white-paper .emr-plugin .square-radio:checked:before,
+.is-white-paper .emr-checkbox:checked:before,
+.is-white-paper .emr-select-box .emr-select-input,
+.is-white-paper .calendar-time,
+.is-white-paper .calendar-date {
+    color: #fff !important;
+    font-size: 0!important;;
+}

@@ -1,0 +1,23 @@
+.emr-select-box{position: relative; display: inline-block;}
+.emr-select-tags{display: none; position: absolute; top: 0; bottom: 0; left: 0; right: 0;}
+.emr-select-input{border: none; outline: none; padding: 0; height: 100%; color: #666; font-size: 14px; appearance: none; background-color: transparent;}
+.emr-select-input[multiple="multiple"]+.emr-select-tags{cursor: pointer; display: inline-block;}
+.emr-options{position: absolute; left: 0;border: 1px solid #e4e7ed; border-radius: 4px; background-color: #fff; box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%); box-sizing: border-box; margin: 5px 0; overflow-x: hidden;}
+.emr-option{padding: 0 10px;}
+.emr-select-dropdown{transform-origin: center top; 
+    max-height: 195px;
+    overflow: auto;
+ z-index: 2001; border: 1px solid #e4e7ed; border-radius: 4px; background-color: #fff; box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%); box-sizing: border-box; margin: 5px 0;}
+.emr-select-dropdown-list {width: 100%!important; list-style: none; padding: 6px 0; margin: 0; box-sizing: border-box; font-size: 14px;}
+.emr-select-dropdown-item {margin-bottom: 2px; display: flex; cursor: pointer; justify-content: space-between; font-size: 14px; padding: 0 20px; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #606266; height: 34px;  font-size: 14px; line-height: 34px; box-sizing: border-box; cursor: pointer;}
+.emr-select-dropdown-item:last-child{margin-bottom: none;}
+.emr-select-dropdown-item:hover{background: #1abba3; color: #FFF}
+.emr-select-dropdown-item.active {
+    background: #19ac96;
+    color: #FFF;
+}
+/* .emr-select-dropdown-item.active::after{content: '√'; display:inline-block; margin-left: 5px;} */
+.erm-selected-display{margin: 0; padding: 10px; background: #FFF; text-align: left; font-size: 14px; color: #333; border-bottom: 1px solid #ccc;    position: sticky;
+    top: 0;left: 0;right: 0;width: 100%;box-sizing: border-box;z-index: 1;}
+.erm-selected-display .emr-tag-btn{margin-right: 5px; padding: 5px 10px; display: inline-block; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;}
+.erm-selected-display .emr-tag-btn:last-child{margin-right: 0;}

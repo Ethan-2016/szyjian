@@ -1,0 +1,401 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>文书管理</title></title>
+
+    <script type="text/javascript" src="./js/commonJS.js"></script>
+    <script type="text/javascript" src="./js/libs/vue.js"></script>
+    <script type="text/javascript" src="./js/libs/element-ui/lib/index.js"></script>
+    <script type="text/javascript" src="./js/libs/axios.min.js"></script>
+    <script type="text/javascript" src="./js/libs/moment-with-locales.min.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="./css/theme/index.css">
+    <link type="text/css" rel="stylesheet" href="css/common.css">
+
+    <style>
+        .switchStyle .el-switch__label {
+            position: absolute;
+            display: none;
+            color: #fff;
+        }
+        .switchStyle .el-switch__label--left {
+            z-index: 9;
+            text-align: right;
+            margin-right: 0px;
+        }
+        .switchStyle .el-switch__label--left  span{
+            padding-right: 5px;
+        }
+        .switchStyle .el-switch__label--right {
+            z-index: 9;
+            text-align: left;
+            margin-left: 0px;
+        }
+        .switchStyle .el-switch__label--right span{
+            padding-left: 5px;
+        }
+        .switchStyle .el-switch__label.is-active {
+            display: block;
+        }
+        .switchStyle.el-switch .el-switch__core,
+        .el-switch .el-switch__label {
+            width: 50px !important;
+        }
+        .el-input.is-disabled .el-input__inner{
+            color: #666;
+        }
+        .table-box .switchStyle .el-switch__label--left{
+            left: 8px;
+        }
+        .table-box .switchStyle .el-switch__label--right{
+            right: -18px;
+        }
+        .field-tips{
+            margin: -5px 0 5px;
+            padding-left: 80px;
+            color:#999;
+        }
+        /*******************************************************/
+       
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="comp">
+            <span class="title">文书管理</span>
+            <el-button size="mini" class="el-icon-refresh-right" @click="refresh"> 刷新</el-button>
+        </div>
+        <div class="main-box">
+            <div class="main">
+
+                <div class="table-btns">
+                    <div class="search-cell">
+                        <span class="search-name" >文书：</span>
+                        <el-input class="input-line" size="small" v-model="word" placeholder="名称/code" clearable @keyup.enter.native="handleSearch"></el-input>
+                        <el-button class="sel-btn" size="small" type="primary" @click="handleSearch">查询</el-button>
+                    </div>
+                    <div class="btn-cell">
+                        <el-button type="primary" size="small" @click="addBtn('add')">新增</el-button>
+                        <el-button size="small" @click="deleteBtn">删除</el-button>
+                    </div>
+                </div>
+              
+
+                <el-table style="width: 100%" class="table-roll" v-loading="loading" border :data="tableData" @selection-change="handleSelectionChange" :header-row-style="{height: '20px'}" :header-cell-style="{background:'#eef1f6',color:'#606266',padding: '10px 0'}" :row-style="{height:'20px'}" :cell-style="{padding: '5px'}" stripe highlight-current-row >
+                    <el-table-column align="center" type="selection"  width="50"></el-table-column>
+                    <el-table-column align="center" type="index" label="序号" width="70"></el-table-column>
+                    <el-table-column  prop="formName" label="名称" width="250"></el-table-column>
+                    <el-table-column  prop="formCode" label="code"></el-table-column>
+                    <el-table-column align="center" prop="coding" label="表单编码"></el-table-column>
+                    <el-table-column align="center" prop="createTime" label="创建时间" ></el-table-column>
+                    <el-table-column align="center" prop="paper_orientation" label="表单纸张" width="120">
+                        <template slot-scope="scope">
+                            {{scope.row.paperOrientation == 2 ? '铺满' : scope.row.paperOrientation == 1 ? 'A4竖向' : scope.row.paperOrientation == 0 ? 'A4横向' : ''}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" prop="print_orientation" label="打印方向" width="120">
+                        <template slot-scope="scope">
+                            {{scope.row.printOrientation == 1 ? 'A4竖向' : scope.row.printOrientation == 0 ? 'A4横向' : ''}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="是否启用" width="120">
+                        <template slot-scope="scope">
+                            <el-switch
+                                class="switchStyle"
+                                v-model="scope.row.status"
+                                :active-value="1"
+                                :inactive-value="0"
+                                active-text="是"
+                                inactive-text="否"
+                                @change="statusChange($event, scope.row)"
+                                active-color="#1DC5AA"
+                                inactive-color="#ff4949">
+                            </el-switch>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="操作" width="160">
+                        <template slot-scope="scope">
+                            <el-button size="small" type="text" @click="editBtn(scope.row)">编辑</el-button>
+                            <el-button size="small" type="text" @click="setBtn(scope.row)">设置</el-button>
+                            <!-- <el-button size="small" type="text" @click="changeStatusBtn(scope.row)">启用</el-button> -->
+                            <el-button size="small" type="text" @click="deleteBtn(scope.row)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <div class="page-box">
+                    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="page"
+                        :page-sizes="[50,100,150]" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper"
+                        :total="count">
+                    </el-pagination>
+                </div>
+
+            </div>
+        </div>
+        <el-dialog 
+            :title="dialogTitle"
+            :visible.sync="dialogVisible"
+            @close="dialogClose"
+            label-width="80px"
+            width="30%">
+            <el-form :model="form" ref="form" :rules="rules" size="small">
+                <el-form-item label="名称：" :label-width="formLabelWidth" prop="formName">
+                    <el-input v-model="form.formName" autocomplete="off" :disabled="opt == 'edit'" placeholder="请输入"></el-input>
+                </el-form-item>
+                <p class="field-tips">名称具有唯一性，不可重复</p>
+                <el-form-item label="code：" :label-width="formLabelWidth" prop="formCode">
+                    <el-input v-model="form.formCode" :disabled="opt == 'edit'" placeholder="请输入"></el-input>
+                </el-form-item>
+                <p class="field-tips">纯英文小写字母，4-15位，不可重复，不可修改</p>
+                <el-form-item label="编码：" :label-width="formLabelWidth" prop="coding">
+                    <el-input v-model="form.coding"></el-input>
+                </el-form-item>
+                <el-form-item label="表单纸张：" :label-width="formLabelWidth" prop="paperOrientation">
+                    <el-select v-model="form.paperOrientation" placeholder="">
+                        <el-option label="A4竖向" :value="1"></el-option>
+                        <el-option label="A4横向" :value="0"></el-option>
+                        <el-option label="铺满" :value="2"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="打印方向：" :label-width="formLabelWidth" prop="printOrientation">
+                    <el-select v-model="form.printOrientation" placeholder="">
+                        <el-option label="A4竖向" :value="1"></el-option>
+                        <el-option label="A4横向" :value="0"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="是否启用：">
+                    <el-switch
+                        class="switchStyle"
+                        v-model="form.status"
+                        :active-value="1"
+                        :inactive-value="0"
+                        active-text="是"
+                        inactive-text="否"
+                        active-color="#1DC5AA"
+                        inactive-color="#ff4949">
+                    </el-switch>
+                  </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false" size="small">取 消</el-button>
+                <el-button type="primary" @click="sureBtn" size="small">保 存</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script type="text/javascript" src="js/axios.js"></script>
+    <script type="text/javascript" src="js/dynamicform.js"></script>
+    <script>
+        var app = new Vue({
+            el:'.content',
+            data: {
+                opt: 'add',
+                word: '',
+                tableData: [],
+                page: 1,
+                pageSize: 50,
+                count: 0,
+                loading: false,
+                dialogVisible: false,
+                dialogTitle: '新增',
+                form: {
+                    formName: '',
+                    formCode: '',
+                    coding: '',
+                    status: 1, // 默认启用;  0:禁用 1:启用
+                    createUid: "",
+                    cssStyle: "",
+                    formDesc: "",
+                    html: "",
+                    id: '',
+                    js: "",
+                    createTime: '',
+                    structuredFields: [],
+                    updateUid: "",
+                    paperOrientation: '', 
+                    printOrientation: ''
+                },
+                rules:{
+                    formName:[
+                        {required: true, message:'请输入', trigger: 'blur'}
+                    ],
+                    formCode:[
+                        {required: true, message:'请输入'}
+                    ]
+                },
+                delParams: [],
+                formLabelWidth: '83px'
+            },
+            mounted(){
+                this.form.createUid = getLocalStorage('loginInfo').id;
+                this.getTableData();
+            },
+            methods:{
+                handleSearch(){
+                    this.page = 1;
+                    this.getTableData();
+                },
+                handleSelectionChange(arr){
+                    this.delParams = [];
+                    arr.forEach(item => {
+                        this.delParams.push(item.formCode);
+                    });
+                },
+                addBtn(opt){
+                    this.opt = 'add';
+                    this.dialogVisible = true;
+                },
+                editBtn(row){
+                    // window.localStorage.setItem('editform', JSON.stringify(row));
+                    window.location.href = './editor-form.html?showBar=true&pattern=design&formName=' + row.formName + '&formCode=' + row.formCode + '&?id=' + row.id + '&coding=' + row.coding;
+                },
+                setBtn(row){
+                    for(var key in this.form){
+                        this.form[key] = row[key];
+                    }
+                    this.dialogVisible = true;
+                    this.opt = 'edit';
+                },
+                changeStatusBtn(row){
+                    for(var key in this.form){
+                        this.form[key] = row[key];
+                    }
+                    if(row.status == 0){
+                        this.form.status = 1;
+                    } else {
+                        this.form.status = 0;
+                    }
+
+                    DynamicForm.updateDynamicForm(this.form).then(res => {
+                        if(res.code === 0){
+                            this.dialogVisible = false;
+                            this.getTableData();
+                        } else {
+                            this.$message.error(res.msg);
+                        }
+                        this.opt = 'add';
+                    })
+                },
+                deleteBtn(row){
+                    console.log(row.formCode, 'row');
+                    if(row.formCode){
+                        this.delParams = [];
+                        this.delParams.push(row.formCode);
+                    }
+                    if(this.delParams.length < 1) {
+                        this.$message.warning('请勾选要删除的文书');
+                        return ;
+                    }
+
+                    this.$confirm(row.formCode ? '确定删除该文书？' : '确定删除勾选的文书？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消'
+                    }).then(() => {
+                        DynamicForm.deleteDynamicForm(this.delParams).then(res => {
+                            if(res.code === 0){
+                                this.$message({
+                                    message:'删除成功',
+                                    type: 'success'
+                                })
+                                this.getTableData();
+                            } else {
+                                this.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                })
+                            }
+                        })
+                    })
+                },
+                dialogClose(){
+                    for(var key in this.form){
+                        this.form[key] = '';
+                    }
+                    this.form.status = 1;
+                    this.form.structuredFields = [];
+                },
+                sureBtn(){
+                    this.$refs['form'].validate((valid) => {
+                        if (valid) {
+                            if(this.opt === 'add'){
+                                this.form.createTime = moment().format('YYYY-MM-DD HH:mm:ss');
+                                DynamicForm.saveDynamicForm(this.form).then(res => {
+                                    if(res.code === 0){
+                                        this.$message.success('新增成功');
+                                        this.dialogVisible = false;
+                                        this.getTableData();
+                                    } else {
+                                        this.$message.error(res.msg);
+                                    }
+                                })
+                            } else {
+                                DynamicForm.updateDynamicForm(this.form).then(res => {
+                                    if(res.code === 0){
+                                        this.dialogVisible = false;
+                                        this.getTableData();
+                                    } else {
+                                        this.$message.error(res.msg);
+                                    }
+                                })
+                            }
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                statusChange(val, row){
+                    for(var key in this.form){
+                        this.form[key] = row[key];
+                    }
+
+                    DynamicForm.updateDynamicForm(this.form).then(res => {
+                        if(res.code === 0){
+                            this.$message({
+                                message: "状态修改成功",
+                                type: 'success'
+                            })
+                            this.getTableData();
+                        } else {
+                            this.$message.error(res.msg);
+                            if(val == '1') { // 状态更改失败恢复原状态
+                                this.row.status = '0';
+                            } else if (val == '0') {
+                                this.row.status = '1';
+                            }
+                        }
+                    })
+                },
+                getTableData(){
+                    this.loading = true;
+                    var params = {
+                        pageNo: this.page,
+                        pageSize: this.pageSize,
+                        word: this.word
+                    }
+
+                    DynamicForm.getFormList(params).then(res => {
+                        if(res.code === 0){
+                            this.count = res.data.totalCount;
+                            this.tableData = res.data.result;
+                        }
+                        this.loading = false;
+                    })
+                },
+                handleSizeChange(val){
+                    this.pageSize = val;
+                    this.page = 1;
+                    this.getTableData();
+                },
+                handleCurrentChange(val){
+                    this.page = val;
+                    this.getTableData();
+                },
+                refresh(){
+                    location.reload();
+                }
+            }
+        })
+    </script>
+</body>
+</html>

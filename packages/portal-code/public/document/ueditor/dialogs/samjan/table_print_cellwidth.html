@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>表格列打印宽度设置</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th width="200">表格表头列宽度</th>
+        <th>每页打印表头行数</th>
+        <th>每页打印数据列数</th>
+        <th>表格数据列宽</th>
+      </tr>
+      <tr>
+        <td>
+          <div id="cols-box"></div>
+        </td>
+        <td>
+          <input type="text" id="row-number">
+        </td>
+        <td>
+          <input type="text" id="col-number">
+        </td>
+        <td>
+          <input type="text" id="col-width">
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2">是否转换表头方向打印（横向表头转纵向）</th>
+        <th>首页减少打印条数</th>
+        <th>末页减少打印条数</th>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <label>
+            <input type="radio" name="transformTableHead" value="1" checked>是
+          </label>
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <label>
+            <input type="radio" name="transformTableHead" value="0">否
+          </label>
+        </td>
+        <td>
+          <input type="text" id="first-page-reduce">
+        </td>
+        <td>
+          <input type="text" id="last-page-reduce">
+        </td>
+      </tr>
+    </table>
+    <div class="tips" style="padding: 20px 5px;">
+      <p>提示：</p>
+      <p>请聚焦到表头列内再设置;</p>
+      <!-- <p>设置打印表头列宽，数据列宽度根据列数等分；</p> -->
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'tablecellwidth';
+    var baseUrl = 'dialogs/samjan';
+    var table;
+
+    window.onload = function() {
+      oNode = editor.selection.getStart();
+      table = oNode.closest('table');
+      var trs = table.rows;
+      var html = '';
+      var printobj = JSON.parse(table.getAttribute('printobj'));
+
+      if(printobj){
+        var tableHeadWidthArr = printobj.tablePrintCellWidthArr.split('、');
+
+        $G('col-width').value = printobj.tableDataCell;
+        $G('row-number').value = printobj.tableHeadRowsNum;
+        $G('col-number').value = printobj.tablePrintCellNum;
+        $G('first-page-reduce').value = printobj.firstPageReduce;
+        $G('last-page-reduce').value = printobj.lastPageReduce;
+
+        for(var i = 0; i < trs.length; i++){
+          if(trs[i].className.indexOf('fileds-tr') > -1 && trs[i].id.indexOf('fileds-tr') < 0){
+            html += '<p><span class="">打印竖向表头'+ (i+1) +'列宽：</span>  <input class="w-val" type="text" id="w'+ i +'" value="'+ tableHeadWidthArr[i] +'" style="width: 50px;" /></p>'
+          }
+        }
+
+        var transformTableHead = document.getElementsByName('transformTableHead');
+        var transformVal = '';
+        for (let index = 0; index < transformTableHead.length; index++) {
+          transformTableHead[index].removeAttribute('checked');
+          if(transformTableHead[index].value == printobj.isTransformTabelHead){
+            transformTableHead[index].setAttribute('checked', true);
+          }
+        }
+
+      } else {
+        for(var i = 0; i < trs.length; i++){
+          if(trs[i].className.indexOf('fileds-tr') > -1 && trs[i].id.indexOf('fileds-tr') < 0){
+            html += '<p><span class="">打印竖向表头'+ (i+1) +'列宽：</span>  <input class="w-val" type="text" id="w'+ i +'  style="width: 50px;" /></p>'
+          }
+        }
+      }
+      document.getElementById('cols-box').innerHTML = html;
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      var oInputs = document.querySelectorAll('.w-val');
+      var colArr = [];
+      var transformTableHead = document.getElementsByName('transformTableHead');
+      var transformVal = '';
+      for (let index = 0; index < transformTableHead.length; index++) {
+        if(transformTableHead[index].checked){
+          transformVal = transformTableHead[index].value;
+        }
+      }
+      var printobj = {
+        tableDataCell: $G('col-width').value || '', // 列宽
+        tableHeadRowsNum: $G('row-number').value || '', // 列宽
+        tablePrintCellNum: $G('col-number').value || 6, // 列数 (默认6)
+        tablePrintCellWidthArr: [], // 打印表头列宽 (默认6)
+        isTransformTabelHead: transformVal,
+        firstPageReduce: $G('first-page-reduce').value || '',
+        lastPageReduce: $G('last-page-reduce').value || ''
+      }
+      
+      for(var i = 0; i < oInputs.length; i++){
+        var colObj = {};
+
+        // colObj.width = oInputs[i].value;
+        colArr.push(oInputs[i].value);
+      }
+
+      printobj.tablePrintCellWidthArr = colArr.join('、');
+      console.log(printobj);
+      
+      table.setAttribute('printobj', JSON.stringify(printobj));
+    };
+  </script>
+</body>
+</html>

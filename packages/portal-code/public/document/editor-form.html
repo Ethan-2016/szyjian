@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>病人电子病历</title></title>
+    <script type="text/javascript" src="./js/commonJS.js"></script>
+    <script type="text/javascript" src="./js/libs/vue.js"></script>
+    <script type="text/javascript" src="./js/libs/element-ui/lib/index.js"></script>
+    <script type="text/javascript" src="./js/libs/axios.min.js"></script>
+    <script type="text/javascript" src="./js/libs/moment-with-locales.min.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="./css/theme/index.css">
+    <link type="text/css" rel="stylesheet" href="css/common.css">
+    
+    <style>
+        .main-box{
+            height: calc(100% - 100px);
+            overflow: visible;
+        }
+        .left-tree,.right{
+            height: 100%;
+            border: 1px solid #e2e2e2;
+            background-color: #fff;
+        }
+        .right{
+            flex: none;
+            width: calc(100% - 260px);
+            min-height: 100%;
+        }
+        .emrIframe{
+            width: 100%;
+            min-height: calc(100% - 1vh);
+        }
+        .emr-box{
+            padding: 20px;
+        }
+        .el-dialog{
+            height: 100%;
+        }
+        .el-dialog__body{
+            height: 100%;
+            padding: 0;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="content">
+        <div class="comp">
+            <span class="title">{{title}}</span>
+            <div>
+                <el-button size="mini" class="el-icon-back" @click="back"> 返回</el-button>
+                <el-button size="mini" class="el-icon-refresh-right" @click="refresh"> 刷新</el-button>
+            </div>
+        </div>
+        <div class="main-box">
+            <div class="search-box">
+                <el-button size="mini" type="primary" @click="handleSave">保存</el-button>
+            </div>
+            <iframe class="emrIframe" id="emrIframe" frameborder="0"></iframe>
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="js/axios.js"></script>
+    <script type="text/javascript" src="js/form.js"></script>
+    <script type="text/javascript" src="js/dynamicform.js"></script>
+
+    <script>
+        var app = new Vue({
+            el:'.content',
+            data: {
+                title: '',
+                value: '',
+                callBackName: [],
+                formEditorVisible: false,
+                showBar: true,
+                searchDate: ''
+            },
+            mounted(){
+                var querystr = window.location.search;
+
+                this.title = getQueryParam('formName');
+                window.$message = this.$message; // 供iframe内的window使用
+                document.getElementById('emrIframe').src = './index.html'+ querystr;
+            },
+            methods:{
+                handleDateChange(){
+
+                },
+                handleEditemr(){
+                    document.getElementById('emrIframe').src = './index.html?showBar=' + this.showBar + '&pattern=design';
+                    // this.formEditorVisible = true;
+                    // setTimeout(function(){
+                    //     document.getElementById('emrIframe').src = '../emr/index.html';
+                    // }, 300)
+                },
+                handleSave(){
+                    // document.getElementsByTagName('iframe')[0].contentWindow.save();
+                    document.getElementById('emrIframe').contentWindow.save();
+                },
+                back() {
+                    window.history.back();
+                },
+                parentNodeClick(){},
+                refresh(){
+                    location.reload();
+                }
+            }
+        })
+    </script>
+</body>
+</html>

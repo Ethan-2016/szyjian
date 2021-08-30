@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="EMR Editor" />
+    <link rel="apple-touch-icon" href="./logo192.png" />
+    <link type="text/json" rel="manifest" href="./manifest.json" />
+    <title>表单编辑器</title>
+    <!-- <link href="./static/css/emr.css" rel="stylesheet"> -->
+    <link type="text/css" href="css/emr.chunk.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="./css/theme/index.css">
+    <link type="text/css" rel="stylesheet" href="css/common.css">
+
+    <style>
+        .vue-box .el-dialog {
+            margin-top: 30px !important;
+            width: 70%;
+        }
+    </style>
+</head>
+
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!-- 打印时透明遮罩层 -->
+    <div class="mask" id="mask"
+        style="display: none; position: fixed; z-index: 1000000000; top: 0; right: 0; bottom: 0; left: 0; background-color: transparent;">
+    </div>
+</body>
+
+<script src="./static/js/emr.js"></script>
+<script src="./static/js/vendors~main.chunk.js"></script>
+<script src="./static/js/main.chunk.js"></script>
+
+<script type="text/javascript" src="./js/commonJS.js"></script>
+<script type="text/javascript" src="./js/libs/vue.js"></script>
+<script type="text/javascript" src="./js/libs/element-ui/lib/index.js"></script>
+<script type="text/javascript" src="./js/libs/axios.min.js"></script>
+<script type="text/javascript" src="./js/libs/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="js/axios.js"></script>
+<script type="text/javascript" src="js/form.js"></script>
+<script type="text/javascript" src="js/dynamicform-micro-report.js"></script>
+<script type="text/javascript" src="js/authorize.js"></script>
+<script type="text/javascript" src="js/templates.js"></script>
+<script type="text/javascript" src="js/advice.js"></script>
+<script type="text/javascript" src="js/hw.js"></script>
+<script type="text/javascript" src="./ueditor/ueditor.config.js"></script>
+<script type="text/javascript" src="./ueditor/ueditor.parse.js"></script>
+<script type="text/javascript" src="./ueditor/ueditor.all.js"></script>
+<script type="text/javascript" src="./ueditor/lang/zh-cn/zh-cn.js"></script>
+<script type="text/javascript" src="./ueditor/third-party/laydate/laydate.js"></script>
+
+<script>
+    var showBar;
+    var pattern = getQueryParam('pattern');
+    var updateParams = {};
+
+    var formCode = getQueryParam('formCode');// 表单编码，通过页面url传参来获取
+    var adviceId = getQueryParam('adviceId');// 医嘱id，通过页面url传参来获取
+    var patientNumber = '';// 页面初始化的过程中会调用获取病人基本信息来初始化本字段
+    var clinicalActivId = getQueryParam('clinicalActivId'); // 诊疗活动id，通过页面url传参来获取
+    var patientType = 'O';// 病人类型：O-门诊，I-住院，暂给默认值O
+    var appCode = getQueryParam('app_code');
+    
+    var isPrint = getQueryParam('print');
+    var hospitalizationId = getLocalStorage('patientInfo') ? getLocalStorage('patientInfo').inpNo : ''; //getLocalStorage('patientInfo') ? getLocalStorage('patientInfo').hospitalizationId : '';
+    var inputTime = getQueryParam('inputTime');
+    var formDataId = '';
+    var addNewFormDataFlag = false; // 是否是新增表单
+    var curRowNurseUserid = ''; // 审核者签名时获取到同一行内护士签名的userid
+    var checkerSignDom = null; // 签名dom有可能是span/td
+    var removeTr = null;
+    var curTd = null; // 当前td
+    var paper = '';
+    var tableData = []; // 表格类表单的表格数据
+    var $message = window.parent.window.$message || window.parent.$message;
+    var orientation = 'portrait';
+    var printOrientation = '1';
+    if (pattern === 'readonly') {
+        showBar = false;
+    } else {
+        showBar = true;
+    }
+
+    var saveHandler = function (content) {
+        console.info(content);
+    }
+
+    var readyHandler = function (editor, callback) {
+        /**
+         * 获取表单数据并渲染
+         * nohPatientForm  testTableform
+         */
+        var formType = 1; // 默认表单类（约定）； 1:表单； 2：表格
+        if (formCode.indexOf('t_') > -1) {
+            formType = 2;
+        }
+
+        DynamicForm4MicroReport.getDynamicForm(formCode).then(res => {// 获取模板数据
+            if (res.code === 0) {
+                var htmlstr = res.data.html;
+                updateParams = res.data;
+
+                if (pattern === 'readonly') {
+                    editor.setContent(htmlstr.replace(/\[|\]/g, ''));
+                    if (window.parent.getBreadCrumdTitle) { // 调用父iframe的window方法赋值面给包屑title
+                        window.parent.getBreadCrumdTitle(res.data.formName);
+                    }
+
+                    DynamicForm4MicroReport.getPatientBaseInfo(clinicalActivId).then(pres => {// 获取病人信息
+                        var patientdata = pres.data;
+                        if (patientdata) {
+                            patientNumber = patientdata.patientNumber;
+                            renderFormHeadData(patientdata, editor);
+                        } else {
+                            renderFormHeadData({}, editor);
+                        }
+                        DynamicForm4MicroReport.getOneFormData(formCode, patientNumber, adviceId).then(fdres => {// 获取数据
+                            var formData = fdres.data;
+
+                            if (fdres.code === 0) {
+                                if (formData) {
+                                    formDataId = formData.id;
+                                    renderFormData(formData);
+                                    if (formData.tableData_text) {
+                                        // renderTableData(editor, JSON.parse(formData.tableData_text));
+                                        renderTableData(editor, formData.tableData_text);
+                                        tableData = formData.tableData_text;
+                                    }
+                                } else {
+                                    renderFormData({});
+                                    renderTableData(editor, []); // 没有数据时打印需要空白行补充 （在tableSplitByData()）函数内进行操作
+                                }
+
+                            }
+                        })
+                    })
+
+                } else {
+                    editor.setContent(htmlstr);
+                }
+
+                if (callback) {
+
+                    console.log(callback);
+                    callback();
+                }
+                if (isPrint === 'print') {
+                    document.getElementById('mask').style.display = 'block';
+                }
+            }
+        })
+    }
+
+    // 渲染表单头部病人信息
+    function renderFormHeadData(formHeadData, editor) {
+        var editorFrame = document.getElementsByTagName('iframe')[0];
+        var plugins = editorFrame.contentWindow.document.getElementsByClassName('emr-plugin');
+        var fields = document.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByClassName('emr-field-value');
+
+        // window.addPageHeader(editor, origin+'/src/common/images/logo1.png'); // （暂时不使用）
+        if (plugins.length > 0) {
+            for (var y = 0; y < plugins.length; y++) {
+                var pluginType = plugins[y].getAttribute('emrplugin');
+                if (pluginType === 'input') {
+                    var obj = JSON.parse(plugins[y].getAttribute("obj").replace(/\'/g, '"'));
+                    if (obj.textType === 'baseInfo') {
+                        var field = plugins[y].getElementsByClassName('emr-field-value')[0];
+                        var key = field.getAttribute('name');
+                        if (formHeadData[key]) {
+                            field.innerText = formHeadData[key];
+                        } else {
+                            field.innerText = '';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 根据返回值渲染表单
+    function renderFormData(formData) {
+        var ueditor = window.UE.getEditor('ueditor');
+        var oTable;
+        var plugins = ueditor.document.getElementsByClassName('emr-plugin');
+        var fields = ueditor.body.getElementsByClassName('emr-field-value');
+        var oDiv = ueditor.document.getElementById('table-wrapper');
+
+        if (!oDiv) { // 打印页面没有表格没有被div包含
+            oTable = ueditor.body.getElementsByTagName('table')[0];
+        } else {
+            oTable = oDiv.getElementsByTagName('table')[0];
+        }
+
+        if (plugins.length > 0) {
+            for (var y = 0; y < plugins.length; y++) {
+                var pluginType = plugins[y].getAttribute('emrplugin');
+                var key;
+
+                switch (pluginType) {
+                    case 'input':
+                        (function (y) {
+                            var field = plugins[y].getElementsByClassName('emr-field-value')[0];
+                            var attrObj = JSON.parse(plugins[y].getAttribute('obj').replace(/\'/g, '"'));
+                            key = field.getAttribute('name');
+
+                            if (key === 'diagnosis') { // 诊断如果修改了 则取修改后的值(覆盖旧值)
+                                if (formData[key]) {
+                                    field.innerText = formData[key];
+                                }
+                            } else {
+                                if (attrObj.textType !== 'baseInfo') { // 表单病人资料表头字段
+                                    if (formData[key]) {
+                                        if(formData[key].indexOf('<img') > -1) {
+                                            field.innerHTML = formData[key];
+                                        }else{
+                                            field.innerText = formData[key];
+                                        }
+                                    } else {
+                                        field.innerText = '';
+                                    }
+                                }
+                            }
+
+                            if (Object.keys(formData).length < 1 && key === 'nurseSignture') { // 进入表单时自动带出护士签名
+                                plugins[y].getElementsByClassName('emr-field-value')[0].setAttribute('signno', getLocalStorage('loginInfo').username);
+                                plugins[y].getElementsByClassName('emr-field-value')[0].innerText = getLocalStorage('loginInfo').realName;
+                            }
+
+                            if (Object.keys(formData).length < 1 && key === 'nurseSignTime') { // 首次默认带出记录时间
+                                plugins[y].getElementsByClassName('emr-field-value')[0].innerText = moment().format('YYYY-MM-DD HH:mm:ss');
+                            }
+
+                            if (key === 'nurseSignture' && formData.signUserNo) { // 已提交过
+                                plugins[y].getElementsByClassName('emr-field-value')[0].setAttribute('signno', formData.signUserNo);
+                            }
+                            if (key === 'checkerSign' && formData.checkerUserNo) {
+                                plugins[y].getElementsByClassName('emr-field-value')[0].setAttribute('signno', formData.checkerUserNo);
+                            }
+
+                            if (isPrint && Object.keys(formData).length > 0 && formData[key] && formCode.indexOf('t_') < 0) { // 打印时获取审核者电子签名
+                                var origin = window.location.origin;
+                                var nurseSignture = ueditor.document.getElementById('nurseSignture');
+                                var checkerSign = ueditor.document.getElementById('checkerSign');
+                                var nurseSignElem;
+                                var checkerSignElem;
+
+                                if (nurseSignture) {
+                                    nurseSignElem = nurseSignture.getElementsByClassName('emr-field-value')[0];
+                                }
+                                if (checkerSign) {
+                                    checkerSignElem = checkerSign.getElementsByClassName('emr-field-value')[0];
+                                }
+
+                                if (key === 'nurseSignture') {
+                                    var elecNurseSignElem = document.createElement('img');
+
+                                    elecNurseSignElem.style.height = '22px';
+                                    elecNurseSignElem.src = origin + '/ims/rbac/user/signature/' + formData.signUserNo;
+                                    nurseSignElem.innerHTML = elecNurseSignElem.outerHTML;
+                                } else if (key === 'checkerSign') {
+                                    var elecCheckSignElem = document.createElement('img');
+
+                                    elecCheckSignElem.style.height = '22px';
+                                    elecCheckSignElem.src = origin + '/ims/rbac/user/signature/' + formData.checkerUserNo;
+                                    checkerSignElem.innerHTML = elecCheckSignElem.outerHTML;
+                                }
+                            }
+                        })(y)
+                        break;
+                    case 'radio':
+                        (function (y) {
+                            var radios = plugins[y].getElementsByClassName('emr-radio');
+                            if (radios.length > 0) {
+                                key = radios[0].getAttribute('name');
+
+                                var allRadios = ueditor.document.querySelectorAll('input[name=' + key + '][type=radio]'); // 单选框相同属性可能会被拆在不同的地方（这样会重复循环，没有办法的办法）
+                                // console.log(formData[key], ' formData[key]', key);
+                                if (formData[key]) {
+                                    console.log(allRadios, ' index page allRadios', key);
+                                    for (var i = 0; i < allRadios.length; i++) {
+                                        if (allRadios[i].value == formData[key]) {
+                                            allRadios[i].setAttribute('checked', true);
+                                        }
+                                    }
+                                } else {
+                                    // console.log(allRadios.length, ' allRadios length');
+                                    for (var j = 0; j < allRadios.length; j++) {
+                                        allRadios[j].removeAttribute('checked');
+                                    }
+                                }
+                            }
+                        })(y)
+                        break;
+                    case 'checkbox':
+                        (function (y) {
+                            var checkboxs = plugins[y].getElementsByClassName('emr-checkbox');
+                            if (checkboxs.length > 0) {
+                                key = checkboxs[0].getAttribute('name');
+                                if (formData[key]) { // checkbox的值以数组形式保存提交: '0','1','2'
+                                    var checkboxData = formData[key].split(',');
+                                    for (var i = 0; i < checkboxs.length; i++) {
+                                        checkboxs[i].removeAttribute('checked');
+                                        for (var k = 0; k < checkboxData.length; k++) {
+                                            if (checkboxs[i].value == checkboxData[k]) {
+                                                checkboxs[i].setAttribute('checked', true);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    for (var j = 0; j < checkboxs.length; j++) {
+                                        checkboxs[j].removeAttribute('checked');
+                                        checkboxs[j].checked = '';
+                                    }
+                                }
+                            }
+                        })(y)
+                        break;
+                    case 'textarea':
+                        var field = plugins[y].getElementsByClassName('emr-field-value')[0];
+                        key = field.getAttribute('name');
+
+                        if (formData[key]) {
+                            field.innerHTML = formData[key];
+                        } else {
+                            field.innerText = '';
+                        }
+                        break;
+                    case 'tabs': // tab切换
+                        var pluginsObj = JSON.parse(plugins[y].getAttribute('obj').replace(/\'/g, '"'));
+                        var tabs = plugins[y].getElementsByClassName('emr-tab-li');
+                        var tabContentBox = plugins[y].getElementsByClassName('emr-tab-content')[0];
+                        var tabContent = tabContentBox.getElementsByClassName('content');
+                        var key = pluginsObj.controlId;
+                        var att = document.createAttribute("checked");
+                        att.value = 'true';
+
+                        if (formData[key]) {
+                            var index = Number(formData[key]);
+                            tabs[index].getElementsByTagName('input')[0].setAttribute('checked', true);
+                            // tabs[index].getElementsByTagName('input')[0].setAttributeNode(att);
+                            for (var i = 0; i < tabContent.length; i++) {
+                                tabContent[i].style.display = 'none';
+                                if (i === index) {
+                                    tabContent[i].style.display = 'block';
+                                }
+                            }
+                        }
+                        break;
+                    case 'select':
+                        break;
+                    case 'emrbutton':
+                        var signImg = plugins[y].getElementsByTagName('img')[0];
+                        var name = signImg.id;
+
+                        signImg.src = formData[name] || ''; // base64字符串
+                        break;
+                }
+            }
+        }
+
+        if (oTable) {
+            var tableData = formData.tableData;
+            var trs = oTable.getElementsByTagName('tr');
+
+            if (tableData) {
+                for (var x = 0; x < trs.length; x++) {
+                    var tds = trs[x].getElementsByTagName('td');
+
+                    for (var y = 0; y < tds.length; y++) {
+                        var key = tds[y].getAttribute('name');
+
+                        if (tds[y].getAttribute('name') === key) {
+                            tds[y].innerText = tableData[key];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isPrint == 'print' && formCode.indexOf('t_') < 0) { // 表单分页
+            window.formSplitPage(ueditor);
+        }
+    }
+
+    function renderTableData(editor, formTableData) { // 渲染表格数据
+        var oTable, oTbody;
+        var oDiv = editor.document.getElementById('table-wrapper');
+        if (!oDiv) { // 打印页面没有表格没有被div包含
+            oTable = editor.body.getElementsByTagName('table')[0];
+        } else {
+            oTable = oDiv.getElementsByTagName('table')[0];
+        }
+        if (oTable) {
+            var trs = oTable.getElementsByTagName('tr');
+            oTbody = oTable.getElementsByTagName('tbody')[0];
+            if (oTable.id === 'form-table') { // 过滤没有表格数据的表格（如：告知书）           
+                for (var k = 0; k < trs.length; k++) {
+                    if (trs[k].id.indexOf('fileds-tr') > -1) {
+                        var cloneTr = trs[k].cloneNode(true);
+                        var tds = trs[k].getElementsByTagName('td');
+                    }
+                    if (trs[k].className.indexOf('fileds-tr') < 0) {
+                        trs[k].parentNode.removeChild(trs[k]);
+                        k--;
+                    }
+                }
+
+                if (formTableData.length > 0) { // 渲染表格数据
+                    for (var i = 0; i < formTableData.length; i++) { // 行
+                        var newTr = document.createElement('tr');
+
+                        console.log(formTableData[i].id, 'formTableData[i].id');
+                        if (formTableData[i].id && formTableData[i].id !== 'undefined') newTr.setAttribute('dataid', formTableData[i].id);
+                        // newTr.setAttribute('dataid', formTableData[i].id != 'undefined' ? formTableData[i].id : ''); // 绑定每条数据id到表格数据tr的属性上，使用时从属性获取
+                        for (var j = 0; j < tds.length; j++) { // 列
+                            var key = tds[j].innerText;
+                            var newTd = document.createElement('td');
+                            var align = tds[j].getAttribute('align');
+                            var showway = tds[j].getAttribute('showway');
+                            var setcontenteditable = tds[j].getAttribute('setcontenteditable');
+                            var grade = tds[j].getAttribute('grade');
+                            var gradeNum = key.split('_').pop();
+                            var selectstr = '';
+                            var selectField = key.split('_')[1]; // 下拉或输入下拉字段取第二个作为字段
+                            var printSelectStyle = '-webkit-appearance:none;';
+                            var printSelectInputStyle = 'width: 100%;'
+
+                            tds[j].setAttribute('name', key);
+                            newTd.setAttribute('name', key);
+                            newTd.setAttribute('showway', showway);
+                            newTd.setAttribute('align', align);
+                            newTd.setAttribute('grade', gradeNum);
+                            newTd.setAttribute('contenteditable', setcontenteditable);
+
+                            if (key.indexOf('scorelevel') > -1) {
+                                newTd.innerText = formTableData[i].scorelevel || '';
+                                newTd.setAttribute('scorelevelIndex', formTableData[i].scorelevelIndex); // 保存等级方案索引号
+                            } else {
+                                if (key.indexOf('select_') > -1) { // 当前列内容为下拉选择
+                                    var selected = '';
+                                    var options = key.split('_');
+                                    options.shift();
+                                    options.shift();
+
+                                    selectstr += '<select style="width:100%; height: 100%; text-align:center; border:none; outline:none;' + (isPrint ? printSelectStyle : '') + '">';
+                                    selectstr += '<option style="display:none;"></option>';
+                                    for (var l = 0; l < options.length; l++) {
+                                        if (options[l] == formTableData[i][selectField]) {
+                                            selected = 'selected'
+                                        }
+                                        selectstr += '<option value="' + options[l] + '"' + selected + '>' + options[l] + '</option>';
+                                    }
+                                    selectstr += '</select>';
+
+                                    newTd.innerHTML = selectstr;
+                                } else if (key.indexOf('selectinput_') > -1) { // 当前列内容为可输入下拉选择
+                                    var options = key.split('_');
+
+                                    options.shift();
+                                    options.shift();
+
+                                    selectstr += '<div class="table-select-wrapper" style="position:relative; width: 100%; height: 100%;">'
+                                    selectstr += '<span style="overflow: hidden;">'
+                                    selectstr += '<select style="width:100%; height: 100%; background-color:transparent; font-size: 0; border:none; outline:none;' + (isPrint ? printSelectStyle : '') + '" onchange="var event = window.event; event.stopPropagation(); this.parentNode.nextSibling.value=this.value; window.parent.window.parent.checkChangeState(); this.closest(' + "'tr'" + ').className = ' + "'edittr-bg'" + '; ">'
+                                    selectstr += '<option style="display:none;"></option>';
+                                    for (var l = 0; l < options.length; l++) {
+                                        selectstr += '<option value="' + options[l] + '" style="font-size: 14px;">' + options[l] + '</option>';
+                                    }
+                                    selectstr += '</select></span><input type="text" value="' + (formTableData[i][selectField] || '') + '" autocomplete="off" style="background-color:transparent; ' + (isPrint ? printSelectInputStyle : 'width:calc(100% - 15px);') + ' position:absolute; left:0px; right: 23px; border:none; top: 0; bottom: 0; outline: none;text-align:center;" /></div>'
+
+                                    newTd.innerHTML = selectstr;
+                                } else if (key.indexOf('nurse_sign') > -1 && formTableData[i].nurseSignNo) { // 护士签名username
+                                    newTd.setAttribute('signno', formTableData[i].nurseSignNo);
+                                    newTd.innerText = formTableData[i][key] || '';
+                                } else if (key.indexOf('checker_sign') > -1 && formTableData[i].checkerUserNo) {
+                                    newTd.setAttribute('signno', formTableData[i].checkerUserNo);
+                                    newTd.innerText = formTableData[i][key] || '';
+                                } else if (key.indexOf('dblclick_sign') > -1) { // 双击签名
+                                    var curSignKey = key.split('dblclick_sign_')[1];
+
+                                    if (formTableData[i][curSignKey + '_signno']) {
+                                        newTd.innerText = formTableData[i][key] || '';
+                                        newTd.setAttribute('signno', formTableData[i][curSignKey + '_signno']); // 双击当前格直接签名（如血糖监测）
+                                    }
+                                } else {
+                                    newTd.innerText = formTableData[i][key] || '';
+                                }
+                            }
+
+                            if (isPrint === 'print') {
+                                var origin = window.location.origin;
+                                if (key.indexOf('nurse_sign') > -1) {
+                                    var elecCheckSignElem = document.createElement('img');
+
+                                    elecCheckSignElem.style.height = '20px';
+                                    elecCheckSignElem.src = origin + '/ims/rbac/user/signature/' + formTableData[i].nurseSignNo;
+                                    newTd.innerHTML = elecCheckSignElem.outerHTML;
+                                } else if (key.indexOf('checker_sign') > -1 && formTableData[i].checkerUserNo) { // signuserno
+                                    var elecCheckSignElem = document.createElement('img');
+                                    // var origin = window.location.origin;
+
+                                    elecCheckSignElem.style.height = '20px';
+                                    elecCheckSignElem.src = origin + '/ims/rbac/user/signature/' + formTableData[i].checkerUserNo;
+                                    newTd.innerHTML = elecCheckSignElem.outerHTML;
+                                } else if (key.indexOf('dblclick_sign') > -1) {
+                                    var dblclickSignElem = document.createElement('img');
+                                    // var origin = window.location.origin;
+                                    var curSignKey = key.split('dblclick_sign_')[1] + '_signno'
+
+                                    if (formTableData[i][curSignKey]) {
+                                        dblclickSignElem.style.height = '20px';
+                                        dblclickSignElem.src = origin + '/ims/rbac/user/signature/' + formTableData[i][curSignKey];
+                                        newTd.innerHTML = dblclickSignElem.outerHTML;
+                                    }
+                                }
+                            }
+
+                            newTr.appendChild(newTd);
+                        }
+                        oTbody.appendChild(newTr)
+                        oTable.appendChild(oTbody);
+                    }
+                }
+
+                window.tableEvents(oTable, 'index window');
+
+                if (isPrint === 'print') { // 表格类表单打印时调用
+                    window.tableSplitByData(editor);
+                }
+
+                // 动态数据渲染后重新计算ueditor高度(表格数据增加的高度)
+                window.calcUeditorHeight(editor);
+                if (!isPrint) {
+                    window.scrollToBottom(editor);
+                }
+            }
+        }
+    }
+
+    function hasTableData() { // 打印没有数据提示方法(暂时不用)
+        var tabelDataBool = false;
+        var tableObj = {
+            data: false, // 返回的数据
+            newRow: false // 表格新增的行
+        }
+        var ueditor = window.UE.getEditor('ueditor');
+        var table = ueditor.body.getElementsByTagName('table')[0];
+        var trs = table.rows;
+        var trsLen = 0;
+
+        for (var i = 0; i < trs.length; i++) {
+            if (trs[i].className.indexOf('fileds-tr') < 0) {
+                trsLen += 1;
+            }
+        }
+
+        if (trsLen > tableData.length) { // 如果除了表头行的length 大于返回的表示有新增未保存的表格行
+            tableObj.newRow = true;
+        }
+
+        if (tableData.length > 0 && !tableObj.newRow) {
+            tableObj.data = true;
+        }
+
+        return tableObj;
+    }
+
+    function getFormData(message) {
+        var editor = window.UE.getEditor('ueditor');
+        var formType = 1; // 默认表单类（约定）； 1:表单； 2：表格
+        if (formCode.indexOf('t_') > -1) {
+            formType = 2;
+        }
+
+        DynamicForm4MicroReport.getFormData(formCode, patientNo, formType).then(fdres => {
+            var formData = fdres.data;
+            console.log(fdres, '============getFormData=====DynamicForm4MicroReport.getFormData====');
+            if (fdres.code === 0) {
+                if (formData) {
+                    formDataId = formData.id;
+                    renderFormData(formData);
+                    if (formData.tableData_text) {
+                        renderTableData(editor, formData.tableData_text);
+                        tableData = formData.tableData_text;
+                    }
+                } else {
+                    renderFormData({});
+                    renderTableData(editor, []); // 没有数据时打印需要空白行补充 （在tableSplitByData()）函数内进行操作
+                }
+            }
+        })
+    }
+
+    // 从iframe中获取请求参数
+    function getQueryString(paramName) {
+        var reg = new RegExp("[^\?&]?" + encodeURI(paramName) + "=[^&]+");
+        if(window.parent.document.getElementById("emrIframe")){
+            var arr = window.parent.document.getElementById("emrIframe").contentWindow.location.search.match(reg);
+        }
+        if (arr != null) {
+            var value =  decodeURI(arr[0].substring(arr[0].search("=") + 1));
+            return value;
+        }
+        return "";
+    }
+
+    // 动态表单id
+    var dynamicFormId = getQueryString("id");
+    // 动态表单的code
+    var dynamicFormCode = getQueryString("formCode");
+
+    window.onload = function () {
+        let editor;
+
+        // 加载模板数据
+        // DynamicForm4MicroReport.getDynamicForm(dynamicFormCode).then(res => {
+        //     var orientation = 'portrait';
+        //     var printOrientation = '';
+
+        //     if (res.code === 0) {
+        //         editor.setContent(res.data);
+        //     }
+        // })
+
+        editor = window.EMREditor('root', {
+            paper: paper,
+            orientation: orientation,
+            printOrientation: printOrientation,
+            pattern: pattern,
+            showBar: showBar,
+            onSave: saveHandler,
+            onReady: readyHandler,
+            // 图片上传地址，该地址前会自动拼接服务器地址和端口
+            imageActionName: '/api/micro/report/file/upload'
+
+        });
+
+        
+        // 保存表单模板字符串
+        window.save = function () { 
+            var htmlstr = editor.getContent();
+            // console.log("富文本的内容为：", htmlstr);
+            var fields = editor.ref.getFields(); // getFields() 为emr控件内的方法
+            var fieldsName = [];
+
+            for (var key in fields) {
+                fieldsName.push(key);
+            }
+
+            updateParams.id = dynamicFormId;
+            updateParams.html = htmlstr;
+            updateParams.structuredFields = fieldsName;
+
+            console.log("请求参数为：", updateParams);
+            // 修改模版
+            DynamicForm4MicroReport.updateDynamicForm(updateParams).then(res => {
+                if (res.code === 0) {
+                    // alert('表单模板保存成功');
+                    $message({
+                        message: '表单模板保存成功',
+                        type: 'success'
+                    })
+                } else {
+                    // console.log(res.msg);
+                    $message({
+                        message: res.msg,
+                        type: 'warning'
+                    })
+                }
+            })
+        };
+
+        // 查询表单数据
+        // window.getRecordOne = function (recordTime) {
+        //     var params = {
+        //         "code": formCode,
+        //         "end": "",
+        //         "recordTime": recordTime,
+        //         "patientId": patientId,
+        //         "patientNo": patientNo,
+        //         "start": ""
+        //     }
+        //     DynamicForm4MicroReport.getFormDataOne(params).then(res => {
+        //         if (res.code === 0) {
+        //             if (res.data) {
+        //                 renderFormData(res.data);
+        //             } else {
+        //                 renderFormData({});
+        //             }
+        //         } else {
+        //             $message({
+        //                 message: res.msg,
+        //                 type: 'warning'
+        //             })
+        //         }
+        //     })
+        // }
+
+        // 根据日期范围查询表单（表格）数据
+        // window.getFormDataDateRange = function (dateRange) {
+        //     var params = {
+        //         "code": formCode,
+        //         "end": dateRange[1],
+        //         "patientId": patientId,
+        //         "patientNo": patientNo,
+        //         "start": dateRange[0]
+        //     }
+        //     DynamicForm4MicroReport.getFormDataDateRange(params).then(res => {
+        //         if (res.code === 0) {
+        //             if (res.data) {
+        //                 var ueditor = window.UE.getEditor('ueditor');
+        //                 renderFormData(res.data);
+        //                 renderTableData(ueditor, res.data.tableData_text);
+        //             } else {
+        //                 renderFormData({});
+        //             }
+        //         } else {
+        //             $message({
+        //                 message: res.msg,
+        //                 type: 'error'
+        //             })
+        //         }
+        //     })
+        // }
+        
+        if (window.parent.app) {
+            window.parent.app.saveDisabled = false;
+            window.parent.app.tempSaveDisabled = false;
+        }
+        window.parent.postMessage({
+            data : false
+        },'*')
+
+        /**
+         * 保存表单数据
+         * message 提交成功提示信息，默认不传
+         * delete 表格删除行标识
+         */
+        window.saveData = function (message, tdelete) { // 保存表单值数据
+            var obj = editor.ref.getFields();
+
+            obj.patient_type = patientType;
+            obj.patient_number = patientNumber;// 病人编号（同一病人永远不会变）
+            obj.patient_serial_number = clinicalActivId; // 诊疗活动id（同一诊疗活动中不会改变的id）
+            obj.advice_id = adviceId;
+            obj.form_name = updateParams.formName;
+            obj.code = formCode;
+
+            // var ueditor = window.UE.getEditor('ueditor');
+
+            if (formCode.indexOf('t_') > -1 && JSON.parse(obj.tableData_text).length === 0) {
+                Message({
+                    message: '请添加数据再发布',
+                    type: 'warning'
+                })
+                if (window.parent.app) {
+                    window.parent.app.saveDisabled = false;
+                }
+                window.parent.postMessage({
+                    data : false
+                },'*')
+                return;
+            }
+
+            if (!addNewFormDataFlag && formDataId) {
+                obj.id = formDataId;
+            }
+            console.log(window.parent.app,' -window.parent.app')
+            if (window.parent.app) {
+                window.parent.app.saveDisabled = true;
+            }
+
+            DynamicForm4MicroReport.saveDynamicFormData(obj).then(res => {
+                if (res.code === 0) {
+                    $message({
+                        message: message || '发布成功',
+                        type: 'success'
+                    })
+                    formDataId = formDataId ? formDataId : '';
+                    // window.parent.getFormDataRecordList();
+                    clearChangeState(); // 清除修改标识
+                    if (window.parent.app) {
+                        window.parent.app.saveDisabled = false; // 按钮恢复可用
+                    }
+                    window.parent.postMessage({
+                        data : false
+                    },'*')
+                    // if (window.parent.quoteField) {
+                    //     window.parent.quoteField(); // 被关联的表单赋值方法
+                    // } else {
+                    //     getFormData('成功删除数据');
+                    // }
+                    readyHandler(editor);
+                } else {
+                    $message({
+                        message: res.msg,
+                        type: 'success'
+                    });
+                    if (window.parent.app) {
+                        window.parent.app.saveDisabled = false; // 按钮恢复可用
+                    }
+                    window.parent.postMessage({
+                        data : false
+                    },'*')
+                }
+            }).catch(err => {
+                if (window.parent.app) {
+                    window.parent.app.saveDisabled = false;
+                }
+                window.parent.postMessage({
+                    data : false
+                },'*')
+            })
+        }
+
+
+        /**
+         * 暂存表单数据
+         * message 提交成功提示信息，默认不传
+         * delete 表格删除行标识
+         */
+         window.tempSaveData = function (message, tdelete) { // 保存表单值数据
+            var obj = editor.ref.getFields();
+
+            obj.patient_type = patientType;
+            obj.patient_number = patientNumber;// 病人编号（同一病人永远不会变）
+            obj.patient_serial_number = clinicalActivId; // 诊疗活动id（同一诊疗活动中不会改变的id）
+            obj.advice_id = adviceId;
+            obj.form_name = updateParams.formName;
+            obj.code = formCode;
+
+            // var ueditor = window.UE.getEditor('ueditor');
+
+            if (formCode.indexOf('t_') > -1 && JSON.parse(obj.tableData_text).length === 0) {
+                Message({
+                    message: '请添加数据再保存',
+                    type: 'warning'
+                })
+                if (window.parent.app) {
+                    window.parent.app.tempSaveDisabled = false;
+                }
+                window.parent.postMessage({
+                    data : false
+                },'*')
+                return;
+            }
+
+            if (!addNewFormDataFlag && formDataId) {
+                obj.id = formDataId;
+            }
+            console.log(window.parent.app,' -window.parent.app')
+            if (window.parent.app) {
+                window.parent.app.tempSaveDisabled = true;
+            }
+
+            DynamicForm4MicroReport.tempSaveDynamicFormData(obj).then(res => {
+                if (res.code === 0) {
+                    $message({
+                        message: message || '保存成功',
+                        type: 'success'
+                    })
+                    formDataId = formDataId ? formDataId : '';
+                    // window.parent.getFormDataRecordList();
+                    clearChangeState(); // 清除修改标识
+                    if (window.parent.app) {
+                        window.parent.app.tempSaveDisabled = false; // 按钮恢复可用
+                    }
+                    window.parent.postMessage({
+                        data : false
+                    },'*')
+                    // if (window.parent.quoteField) {
+                    //     window.parent.quoteField(); // 被关联的表单赋值方法
+                    // } else {
+                    //     getFormData('成功删除数据');
+                    // }
+                    readyHandler(editor);
+                } else {
+                    $message({
+                        message: res.msg,
+                        type: 'success'
+                    });
+                    if (window.parent.app) {
+                        window.parent.app.tempSaveDisabled = false; // 按钮恢复可用
+                    }
+                    window.parent.postMessage({
+                        data : false
+                    },'*')
+                }
+            }).catch(err => {
+                if (window.parent.app) {
+                    window.parent.app.tempSaveDisabled = false;
+                }
+                window.parent.postMessage({
+                    data : false
+                },'*')
+            })
+        }
+
+        // 删除非表格类表单数据
+        // window.deleteFormData = function () {
+        //     if (!formDataId) {
+        //         // alert('没有可删除的数据');
+        //         $message({
+        //             message: '没有可删除的数据',
+        //             type: 'warning'
+        //         })
+        //         return;
+        //     }
+        //     DynamicForm4MicroReport.deleteDynamicFormData(formCode, formDataId).then(res => {
+        //         if (res.code === 0) {
+        //             // alert('删除成功');
+        //             $message({
+        //                 message: '删除成功',
+        //                 type: 'success'
+        //             })
+        //             window.parent.getFormDataRecordList();
+        //             // location.reload();
+        //             getFormData();
+        //         } else {
+        //             $message({
+        //                 message: '删除失败，请检查重试！',
+        //                 type: 'warning'
+        //             })
+        //         }
+        //     })
+        // }
+
+        window.selectCurTr = function (curTr) { // 获取点击删除的行
+            removeTr = curTr;
+        };
+
+        // 删除表格不再使用保存表格方法，新添加单独的删除接口
+        // window.removeTableRows = function () { // 移除表格行
+        //     var dataId;
+        //     if (!removeTr) {
+        //         $message.warning('请点击时间列选中要删除的数据行');
+        //         return;
+        //     }
+        //     dataId = removeTr.getAttribute('dataid');
+
+        //     DynamicForm4MicroReport.deleteDynamicTableData(formCode, patientNo, dataId).then((res) => {
+        //         if (res.code === 0) {
+        //             $message({
+        //                 message: '删除成功',
+        //                 type: 'success'
+        //             })
+        //             removeTr.parentNode.removeChild(removeTr);
+        //         } else {
+        //             $message({
+        //                 message: res.msg,
+        //                 type: 'error'
+        //             })
+        //         }
+        //     })
+        // }
+
+        window.handleAddTableRows = function () {
+            var ueditor = window.UE.getEditor('ueditor');
+            var oDiv = ueditor.document.getElementById('table-wrapper');
+            var oTable = oDiv.getElementsByTagName('table')[0];
+            addTableRows(oTable, ueditor); // emr组件内的方法
+            window.parent.checkChangeState(); // 添加修改标识
+        }
+
+        window.getFields = function () {
+            var obj = editor.ref.getFields(); // 表单字段对象
+            return obj;
+        }
+
+        window.renderFormData = renderFormData; // 暴露表单赋值函数，便于表单引用时赋值给原表单
+        window.setChangeStateFn = checkChangeState; // 挂载在窗口让表单编辑器调用
+
+        // 带出表格行日期和时间事件
+        // window.formatTableDatetime = function (datetype) {
+        //     return moment().format(datetype);
+        // }
+
+        // 带出表格行护士签名事件
+        // window.getNurseName = function () {
+        //     var nurseName = '';
+
+        //     nurseName = JSON.parse(window.localStorage.getItem('loginInfo'));
+        //     return nurseName;
+        // }
+
+        // 签名弹窗(从emr内触发，传出当前点击的单元格dom)
+        // window.getSignerName = function (userid, signDom) {
+        //     curRowNurseUserid = userid;
+        //     checkerSignDom = signDom;
+        //     document.getElementById('dialog-wrapper').style.display = 'block';
+        // }
+
+        // document.getElementById('ensure-btn').onclick = function () {
+        //     queryCheckerName();
+        // }
+
+        // document.getElementById('hide-dialog').onclick = function () {
+        //     hideDialog();
+        // }
+        
+        // document.getElementById('icon-close').onclick = function () {
+        //     hideDialog();
+        // }
+
+        // function hideDialog() {
+        //     document.getElementById('dialog-wrapper').style.display = 'none';
+        // }
+
+        // 弹窗输入账号密码签名
+        // window.queryCheckerName = function () {
+        //     var formData = new FormData();
+        //     var username = document.getElementById('username').value;
+        //     var password = document.getElementById('password').value;
+
+        //     formData.append("username", username);
+        //     formData.append("password", password);
+
+        //     Authorize.login(formData).then(res => { //  使用登录接口核对账号密码
+        //         if (res.code === '200') {
+        //             axios.get("/ims/authorize/info", {
+        //                 headers: {
+        //                     Authorization: localStorage.getItem('checkerauth')
+        //                 },
+        //                 params: formData
+        //             }).then(userRes => {
+        //                 if (userRes.data.code === 0) {
+        //                     if (userRes.data.data.id == curRowNurseUserid) {
+        //                         this.$message({
+        //                             message: '审核者与创建者不能是同一账号',
+        //                             type: 'warning'
+        //                         });
+        //                         return;
+        //                     }
+
+        //                     var ueditor = window.UE.getEditor('ueditor');
+        //                     var checkerSignTimeElem = ueditor.document.getElementById('checkerSignTime');
+
+        //                     if (checkerSignTimeElem) {
+        //                         checkerSignTimeElem.getElementsByClassName('emr-field-value')[0].innerText = moment().format('YYYY-MM-DD HH:mm:ss');
+        //                     }
+
+        //                     checkerSignDom.innerText = userRes.data.data.realName; // 赋值到表格审核者单元格内或表单审核签名
+        //                     checkerSignDom.setAttribute('signno', userRes.data.data.username);
+        //                     document.getElementById('username').value = '';
+        //                     document.getElementById('password').value = '';
+        //                     checkChangeState();
+        //                     hideDialog();
+        //                 } else {
+        //                     this.$message({
+        //                         message: '请检查审核者账号密码',
+        //                         type: 'error'
+        //                     })
+        //                 }
+        //             })
+        //         } else {
+        //             this.$message({
+        //                 message: '登录者账号或者密码错误, 请检查',
+        //                 type: 'error'
+        //             });
+        //         }
+        //     })
+
+        //     return username ? username : '';
+        // }
+
+        // window.openReferenceDialog = function (td) {
+        //     var oldSpecRecord = vue.specRecord;
+        //     curTd = td;
+        //     vue.dialogRecordVisible = true;
+        //     vue.specRecord = td.innerText;
+        // }
+
+        // var ensure = document.querySelector('#ensure');
+        // var cancelBtn = document.querySelector('#cancelReferDialog');
+
+        // ensure.onclick = function (e) {
+        //     var tr = curTd.parentNode;
+        //     var className = tr.className;
+        //     vue.dialogRecordVisible = false;
+        //     curTd.innerText = vue.specRecord;
+        //     tr.className = "edittr-bg";
+        // }
+        
+        // cancelBtn.onclick = function (e) {
+        //     closeReferDialog();
+        // }
+
+        // function closeReferDialog() {
+        //     vue.dialogRecordVisible = false;
+        // }
+    }
+    
+    // var vue = new Vue({ // 这里使用vue实例是为了使用element-ui的组件和样式统一
+    //     el: ".vue-box",
+    //     data: {
+    //         dialogRecordVisible: false,
+    //         specRecord: '',
+    //         recordActiveName: 'first',
+    //         adviceDate: moment().format('YYYY-MM-DD'),
+    //         areaId: '',
+    //         templateName: '',
+    //         templateTableData: [],
+    //         adviceLoading: false,
+    //         adviceTableData: [],
+    //         patientInfo: {}
+    //     },
+    //     mounted() {
+    //         // this.patientInfo = getLocalStorage('patientInfo');
+    //         this.areaId = this.patientInfo.areaId;
+    //     },
+    //     methods: {
+    //         getAdvices() {
+    //             this.adviceLoading = true;
+
+    //             function groupBy(array, f) { //医嘱分组
+    //                 const groups = {};
+    //                 array.forEach(function (o) {
+    //                     const group = JSON.stringify(f(o));
+    //                     groups[group] = groups[group] || [];
+    //                     groups[group].push(o);
+    //                 });
+    //                 return Object.keys(groups).map(function (group) {
+    //                     return groups[group];
+    //                 });
+    //             }
+
+    //             let arr = []; //输入框显示内容
+    //             Advice.bottleSignPrint({
+    //                 patientNos: [this.patientInfo.patientNo],
+    //                 page: 1,
+    //                 size: 300,
+    //                 planExecDate: this.adviceDate, //this.formInline.selectDate,
+    //                 wayType: '', //给药途径  输液单"1" 注射单"2" 雾化单"3"
+    //                 timeLimit: '', //医嘱类型 长期"1" 临时"0"
+    //                 printStatus: '', //"0"未打印  "1"已打印
+    //             }).then(res => {
+    //                 this.total = res.data.totalCount
+    //                 this.adviceTableData = []
+    //                 let param = res.data.result;
+    //                 const groupData = groupBy(param, function (item) {
+    //                     return [item.placerGroupNumber, item.planExecTime];
+    //                 });
+    //                 if (groupData.length > 0) {
+    //                     groupData.forEach((item, index) => {
+    //                         item.forEach((item1, index1, arr) => {
+    //                             if (item.length > 1) {
+    //                                 if (index1 === 0) {
+    //                                     item[index1].leftFlag = '┌'
+    //                                     item[index1].rightFlag = '┐'
+    //                                     this.adviceTableData.push(item1)
+    //                                 } else if (index1 === item.length - 1) {
+    //                                     item[index1].leftFlag = '└'
+    //                                     item[index1].rightFlag = '┘'
+    //                                     this.adviceTableData.push(item1)
+    //                                 } else {
+    //                                     item[index1].leftFlag = '|'
+    //                                     item[index1].rightFlag = '|'
+    //                                     this.adviceTableData.push(item1)
+    //                                 }
+    //                             } else {
+    //                                 this.adviceTableData.push(item1)
+    //                             }
+    //                         })
+    //                     })
+    //                 }
+    //                 this.adviceLoading = false;
+    //             })
+    //         },
+    //         handleReordClick() { },
+    //         handleSelectRow(row, column, cell, event) { // 病情模板选中内容
+    //             if (this.recordActiveName === 'first') {
+    //                 this.specRecord += row.value.content + ' ';
+    //             } else if (this.recordActiveName === 'second') {
+    //                 this.specRecord += row.diagnosisDescription + ' ';
+    //             } else if (this.recordActiveName === 'third') {
+    //                 this.specRecord += row.projectName + ' ';
+    //             }
+    //         },
+    //         adviceDateChange(val) {
+    //             this.adviceDate = moment(val).format('YYYY-MM-DD');
+    //             this.getAdvices();
+    //         },
+    //         tableSelect(rows, row) { //选中
+    //             let _this = this;
+    //             let selected = rows.length && rows.indexOf(row) !== -1 //// true就是选中，0或者false是取消选中
+    //             if (selected) {
+    //                 if (_this.adviceTableData.length > 0) {
+    //                     _this.adviceTableData.forEach((item, index) => {
+    //                         if (row.placerGroupNumber === item.placerGroupNumber && row.planExecTime === item.planExecTime) {
+    //                             _this.adviceSelectedArr.push(item)
+    //                             _this.$refs.multipleTable.toggleRowSelection(item, true)
+    //                             this.specRecord += (index !== 0 ? '+' : '') + item.adviceItemName + ' ' + item.dose + item.unit;
+    //                         }
+    //                     })
+    //                 }
+    //             } else {
+    //                 if (_this.adviceTableData.length > 0) {
+    //                     _this.adviceTableData.forEach(item => {
+    //                         if (row.placerGroupNumber === item.placerGroupNumber && row.planExecTime === item.planExecTime) {
+    //                             _this.adviceSelectedArr.forEach((group, i) => {
+    //                                 if (group === item) {
+    //                                     _this.adviceSelectedArr.splice(i, 1);
+    //                                 }
+    //                             })
+    //                             _this.$refs.multipleTable.toggleRowSelection(item, false)
+    //                         }
+    //                     })
+    //                 }
+    //             }
+    //         },
+    //         checkboxAll() { },
+    //         insertContentToTable() { },
+    //     }
+    // })
+</script>
+
+</html>
