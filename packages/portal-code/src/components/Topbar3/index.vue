@@ -63,7 +63,7 @@
           :key="index"
           @click="jumpSecond(route)"
         >
-          <img
+          <!-- <img
             :src="
               $route.path.indexOf(route.displayName) !== 1
                 ? require('@/benchs/icis/assets/img/icons/' +
@@ -75,7 +75,7 @@
             "
             v-if="route.icon"
             :alt="route.displayName"
-          />
+          /> -->
           {{ route.displayName }}
         </a>
       </div>

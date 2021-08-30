@@ -10,13 +10,13 @@
 
 <script>
 import secondMenu from "@/components/SecondMenu/index.vue";
-import saSystem from "@/benchs/sanesthesia/api/saSystem";
-import DocumentClassify from "@/benchs/sanesthesia/views/saSystem/DocumentClassify.vue";
+// import saSystem from "@/benchs/sanesthesia/api/saSystem";
+// import DocumentClassify from "@/benchs/sanesthesia/views/saSystem/DocumentClassify.vue";
 
 export default {
   components: {
     secondMenu,
-    DocumentClassify,
+    // DocumentClassify,
   },
   data() {
     return {

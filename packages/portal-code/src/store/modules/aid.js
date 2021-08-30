@@ -6,7 +6,7 @@
 import {
     Message
 } from "element-ui";
-import connectCar from "@/benchs/preHospital/api/connectCar";
+// import connectCar from "@/benchs/preHospital/api/connectCar";
 let aid = {
     state: {
         // 车辆当前选择的病人基础信息
