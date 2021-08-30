@@ -1,0 +1,104 @@
+//当HTML的data-theme为dark时，样式引用dark
+//data-theme为其他值时，就采用组件库的默认样式
+//这里我只定义了两套主题方案，想要再多只需在`$themes`里加就行了
+//注意一点是，每套配色方案里的key可以自定义但必须一致，不然就会混乱
+
+//日间模式
+$themes: (light: ( //字体
+		font_color1: #1BAD96, //导航栏菜单文字 =>#FFF
+		font_color2: #333, //内容字体颜色 =>#FFF
+		font_color3: #333, //表框提示文字 =>##737781
+		font_color4: #000, // 内容字体颜色 =>#FFFFFF
+		font_color5:#C0C4CC, //按钮禁用颜色 =>#FFFFFF
+		font_color6:#595757, //分页文字 =>#737781
+		font_color7:#FFF, //分页文字 =>#1bad96
+		font_color8:#333, //新建任务单
+
+		//背景
+		background_color1: #DCDFE6, //底部颜色 =>#1B2531
+		background_color2: #106659, //主题切换选择框背景 =>#27313B
+		background_color3: #1BAD96, //导航栏菜单背景未选中 =>#242E37
+		background_color4: #F2F7FA, // =>#27313B
+		background_color5: #FFF, // =>#242E37
+		background_color6: #FFF, //任务单背景 =>#1F2935
+		background_color7: #FAFAFA, //任务单详细信息背景 =>#2E3B47
+		background_color8: #FFF, //表框颜色 =>#15232E
+		background_color9: #EFEFEF, //按钮 =>#1F2935
+		background_color10:#FFF, //D2D仪表盘背景 =>#38414E
+		background_color11: #EBEEF5, //表格边框 =>#535D6B
+		background_color12:#F5F7FA, //表格hover =>#34404B
+		background_color13:#1BAD96, //新建任务头部 =>#213548
+		background_color14:#F4F4F5, //页码 =>#15232E
+		background_color15:#E4E7ED, //表头 =>#242e37
+		background_color16:#1BAD96, //分页 =>#15232E
+		background_color17:rgba(255, 255, 255, .9), //分页 =>#15232E
+		background_color18:#E4E7ED, //输入框禁用 =>#242e37
+		background_color19:#FFF, //输入框禁用 =>#1B2531
+		background_color20:#D2D2D2, //输入框禁用 =>#3C495A
+		background_color21:#242E37, //D2D仪表盘背景 =>#38414E
+		background_color22:#F2F7FA, //预检分诊背景 =>#1B2531
+		background_color23:#E4E7ED, //表头 =>#1B2531
+		background_color24:#FFF, //弹窗 =>#2E3B47
+		background_color25:#F5F5F5, //弹窗 =>#1B2531
+		background_color26:#F2F7FA, //弹窗 =>#1B2531
+
+		background_image1:linear-gradient(#106659 0%, #106659 100%), //导航整体背景
+		background_image2:linear-gradient(#F2F7FA 0%, #F2F7FA 100%), //导航栏菜单背景选中
+		//边框
+		border_color1: #FFF, //=>#3D414A
+		border_color2: #DCDFE6, //输入框 =>#15232E
+		border_color3: #DCDFE6, //表格 =>#535D6B
+		// border_color4:#DCDFE6, // =>#535D6B
+		// 动画名称
+		animation_m: myAnimation1,
+
+	),
+	//夜间模式
+	dark: (font_color1: #FFF,
+		font_color2: #FFF,
+		font_color3: #737781,
+		font_color4: #FFF,
+		font_color5:#38414E,
+		font_color6:#737781,
+		font_color7:#1BAD96,
+		font_color8:#808080,
+		//背景
+		background_color1: #1B2531,
+		background_color2: #27313B,
+		background_color3:#242E37,
+		background_color4: #27313B,
+		background_color5:#242E37,
+		background_color6:#1F2935,
+		background_color7:#242E37,
+		background_color8: #15232E,
+		background_color9:#1F2935,
+		background_color10:#38414E,
+		background_color11:#535D6B,
+		background_color12:#34404B,
+		background_color13:#213548,
+		background_color14:#15232E,
+		background_color15:#242e37,
+		background_color16:#15232E,
+		background_color17:rgb(36, 47, 56, 0.9),
+		background_color18:#737781,
+		background_color19:#1B2531,
+		background_color20:#3C495A,
+		background_color21:#38414E,
+		background_color22:#1B2531,
+		background_color23:#242E37,
+		background_color24:#2E3B47,
+		background_color25:#1B2531,
+		background_color26:#1B2531,
+		background_image1:linear-gradient(#3F4F60 0%, #27313B 100%),
+		background_image2:linear-gradient(#0D88CC 0%, #12C38C 100%),
+
+		//边框
+		border_color1: #15232E,
+		border_color2: #15232E,
+		border_color3:#535D6B,
+		// border_color4:#535D6B,
+		border_color5:#3C495A,
+		// 动画名称
+		animation_m: myAnimation2,
+
+	));
