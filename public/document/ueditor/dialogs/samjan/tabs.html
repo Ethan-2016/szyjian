@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>tab标签</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" />
+    <table class="table emr-setting-table">
+      <tr>
+        <th><span>控件名称</span><span class="label label-important">*</span></th>
+        <th><span>控件ID</span></th>
+        <th><span>默认值</span></th>
+        <th><span>单选框标签头</span></th>
+      </tr>
+      <tr>
+        <td><input type="text" id="controlName" placeholder="必填项目" /></td>
+        <td><input type="text" id="controlId" placeholder="必填项目" /></td>
+        <td><input type="text" id="defaultValue" placeholder="可选项目" /></td>
+        <td>
+          <input type="radio" name="radioTabs" value="0">否
+          <input type="radio" name="radioTabs" id="radioTabs" value="1">是
+        </td>
+      </tr>
+      <!-- <tr>
+        <th colspan="3">tab标签</th>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <div class="tabs-box">
+            <ul>
+              <li>标签一 <span class="emr-tab-remove" style="cursor:pointer;">X</span></li>
+              <li>+</li>
+            </ul>
+            <div class="emr-tab-contents-box">
+              <div class="tab-content">
+                tab-content1
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr> -->
+      <!-- <tr>
+        <th><span>字体颜色</span></th>
+        <th colspan="2"><span> 最小宽度 & 字体大小</span></th>
+      </tr>
+      <tr>
+        <td><input type="color" id="fontColor" value="#3c3c3c" /></td>
+        <td colspan="2">
+          <input type="text" id="width" value="700" style="width: 38px;" /> &
+          <input type="text" id="height" value="80" style="width: 38px;" /> &
+          <input type="text" id="fontSize" value="16" style="width: 38px;" />px
+        </td>
+      </tr> -->
+    </table>
+
+    <div class="foot-btn" style="margin: 10px;">
+      <button class="btn primary" id="add-option" onclick="fnAdd();">添加选项</button>
+    </div>
+    <table class="table emr-setting-table" id="tabs-table">
+      <tr>
+        <th colspan="2">标签</th>
+        <th>操作</th>
+      </tr>
+    </table>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'tabs';
+
+    function createElement(type, name) {
+      var element = null;
+      try {
+        element = document.createElement(`<${type} name=${name}>`);
+      } catch (e) {
+        console.error(e);
+      }
+
+      if (element == null) {
+        element = document.createElement(type);
+        element.name = name;
+      }
+      return element;
+    }
+
+    function $id(id) {
+      return document.getElementById(id);
+    }
+
+    window.onload = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        oNode = UE.plugins[thePlugin].editdom;
+        var obj = eval('(' + oNode.getAttribute('obj') + ')');
+        for (var key in obj) {
+          if ($id(key)) {
+            $id(key).value = obj[key];
+          }
+        }
+        
+        var tabsHead = oNode.getElementsByClassName('emr-tab')[0].getElementsByClassName('emr-tab-li');
+        var texts = [];
+
+        for(var i = 0; i < tabsHead.length; i++){
+          texts.push(tabsHead[i].innerText);
+        }
+        renderHtml('emr', 'tabs-table', texts);
+      }
+
+      // emrTabs('tabs-box');
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        delete UE.plugins[thePlugin].editdom;
+      }
+    }
+
+    dialog.onok = function () {
+      if ($G('controlName').value === '') {
+        alert('控件名称不能为空');
+        return false;
+      }
+      var gTimestamp = new Date().getTime();
+      var controlId = $id('controlId').value;
+      
+      var name = controlId + gTimestamp;
+      var gTitle = $id('controlName').value.replace(/\"/g, '&quot;');
+      console.log(radioTabs, 'radioTabs');
+      var obj = {
+        controlName: $id('controlName').value || '',
+        controlId: $id('controlId').value.trim() || '',
+        defaultValue: $id('defaultValue').value || '',
+        conponentType: 'tabs'
+      };
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      var placeStyle = 'width: auto;'; // 防止ueditor改变样式
+      var style = `display:block; font-size:${obj.fontSize}px; color: ${obj.fontColor}; text-align:${obj.textAlign}`;
+      // var onkeydown = `if(window.getSelection().focusOffset == 0) { if(event.keyCode == 8 || event.keyCode == 46) { return false; }`;
+      // var onblur = `this.setAttribute('contenteditable', false)`;
+      // var onclick = `this.setAttribute('contenteditable', true);this.focus();`;
+      if (!oNode) {
+        try {
+          
+          var html = `<span class="emr-field emr-plugin" style="${placeStyle}" emrplugin="tabs" id="${obj.controlId}" title="${gTitle}" obj="${objstr}" contenteditable="false">`;
+          html += `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+          html += `<span class="emr-field emr-field-value" style="${style}" contenteditable="false">`;
+          html += parseTabsHtml();
+          html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+          html += `</span>`;
+          editor.execCommand('insertHtml', html);
+          // window.parent.document.getElementById('ueditor_0').contentWindow.emrTabs('ueditor_0', 'emr-tab');
+          window.parent.document.getElementById('ueditor_0').contentWindow.emrTabs(editor);
+          // console.log(UE.dom.domUtils.getWindow(document.body).emrTabs.toString());
+          return true;
+        } catch (e) {
+          try {
+            editor.execCommand('error');
+          } catch (e) {
+            alert('控件异常,请联系尚哲反馈或寻求帮助！');
+          }
+          return false;
+        }
+      } else {
+        oNode.setAttribute('obj', objstr);
+        var html = `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`
+        html += `<span class="emr-field emr-field-value" style="${style}" validation="${obj.textValidation}" contenteditable="false">`
+          html += parseTabsHtml('edit');
+          html += `</span>`;
+        html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+        oNode.innerHTML = html;
+        delete UE.plugins[thePlugin].editdom;
+        window.parent.document.getElementById('ueditor_0').contentWindow.emrTabs(editor);
+        return true;
+      }
+    }
+    
+    function fnAdd(){
+      renderHtml('emr', 'tabs-table');
+    }
+
+    function parseTabsHtml(data){
+      var onkeydown = `if(window.getSelection().focusOffset == 0) { if(event.keyCode == 8 || event.keyCode == 46) { return false; }`;
+      var onblur = `this.setAttribute('contenteditable', false)`;
+      var onclick = `this.setAttribute('contenteditable', true);`;  //this.focus();
+      var inputs = $G('tabs-table').getElementsByTagName('input');
+      var inputsLen = inputs.length;
+      var tabHtml = ``;
+      var tabHeadhtml = '';
+      var tabConHtml = ``;
+      var radioTabs = getRadioVal('radioTabs');
+
+      for(var i = 0; i < inputsLen; i++){
+        console.log(radioTabs, 'input radioTabs');
+        if(radioTabs == 1) {
+          tabHeadhtml += `<span class="emr-tab-li" style="border:none;"><input type="radio" name="radioTabs" value="${i}"> ${inputs[i].value}</span>`;
+        } else {
+          tabHeadhtml += `<span class="emr-tab-li">${inputs[i].value}</span>`;
+        }
+      }
+
+      if(data){
+        var orgTabContent = oNode.getElementsByClassName('emr-tab-content')[0];
+        var orgTabContentHtml = orgTabContent.innerHTML;
+        var orgContent = orgTabContent.getElementsByClassName('content');
+        var orgContentLen = orgContent.length;
+        var addNewTabConLen = inputsLen - orgContentLen; // 编辑时新增了tab标签
+        var editTabConHtml = ``;
+
+        if(addNewTabConLen>0){ // 增加了
+          for (var k = 0; k < addNewTabConLen; k++) {
+            editTabConHtml += `<span class="content" contenteditable="false" onkeydown="${onkeydown}" onblur="${onblur}" onclick="${onclick}">tab-content ${inputsLen + k}</span>`;
+          }
+          tabConHtml = orgTabContentHtml + editTabConHtml;
+        } else { // 删除了tab或者不变
+          for(var x = 0; x < inputsLen; x++){
+            tabConHtml += orgContent[x].outerHTML;
+          }
+        }
+      }else{
+        for(var j=0; j < inputs.length; j++){
+          tabConHtml += `<span class="content" contenteditable="false" onkeydown="${onkeydown}" onblur="${onblur}" onclick="${onclick}">tab-content ${j+1}</span>`;
+        }
+      }
+      
+      tabHtml = `<span class="emr-tab"><span class="emr-tab-list">${tabHeadhtml}</span><span class="emr-tab-content">${tabConHtml}</span></span>`;
+      return tabHtml;
+    }
+
+    function deleteRow(obj){
+      var oTable = $G("tabs-table");
+      while(obj.tagName !='TR') {
+          obj = obj.parentNode;
+      }
+      oTable.deleteRow(obj.rowIndex);
+    }
+
+    function renderHtml(name, table, data, none){
+      var oTable = $G(table);
+      var oTbody = oTable.getElementsByTagName('tbody')[0];
+      
+      if(!data){
+        var oTr = document.createElement('tr');
+        var htmlstr = `<td colspan="2"><input type="text" placeholder="标签名称"/></td>`;
+            htmlstr += `<td><div class="btn-group"><button title="删除" class="btn small btn-default" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+            oTr.innerHTML = htmlstr;
+            oTbody.appendChild(oTr);
+      }else{
+        for(var i = 0; i < data.length; i++){
+          var htmlstr = '';
+          var oTr = document.createElement('tr');
+              htmlstr += `<td colspan="2"><input type="text" placeholder="选项名" value="${data[i]}"/></td>`;
+              htmlstr += `<td><div class="btn-group" style="display:${none};}"><button title="删除" class="btn small btn-default" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+              oTr.innerHTML = htmlstr;
+              oTbody.appendChild(oTr);
+          }
+      }
+    }
+
+    function getRadioVal(nameVal){
+      var inputs=document.getElementsByName(nameVal);
+      var checkVal="";
+      for(var i=0, len=inputs.length;i<len;i++){
+        if(inputs[i].checked){
+            checkVal=inputs[i].value;
+        }
+      }
+      return checkVal;
+    }
+    
+    // function emrTabs(tabsBox){
+    //   var oTabWrapper = document.getElementsByClassName(tabsBox)[0];
+    //   var oUl = oTabWrapper.getElementsByTagName('ul')[0];
+    //   var oLis = oUl.getElementsByTagName('li');
+    //   var oTabContentsBox = oTabWrapper.getElementsByClassName('emr-tab-contents-box')[0];
+    //   var oTabContents = oTabContentsBox.getElementsByClassName('tab-content');
+    //   var liLen = oLis.length; // 减去添加标签
+    //   var liClassName = oLis[liLen-1].className;
+
+    //   for(var i = 0; i < liLen; i++){
+    //     oLis[i].index = i;
+    //     if(i < (liLen - 2)){
+    //       oLis[i].className = '';
+    //     }
+    //     if(i < (liLen - 1)){
+    //       oTabContents[i].style.display = 'none';
+    //       oTabContents[liLen-2].style.display = 'block';
+          
+    //       oLis[i].onclick = function(e,i){ // 切换
+    //         for(var j = 0; j < oLis.length-1; j++) {
+    //           oLis[j].className = liClassName;
+    //           oTabContents[j].style.display = 'none';
+    //         }
+    //         oLis[this.index].className = 'active';
+    //         oTabContents[this.index].style.display = 'block';
+            
+    //       }
+    //       oLis[i].getElementsByClassName('emr-tab-remove')[0].onclick = function(e){
+    //         e.stopPropagation();
+    //         e.preventDefault();
+    //         var index = this.parentNode.index;
+    //         oUl.removeChild(oLis[index]);
+    //         oTabContentsBox.removeChild(oTabContents[index]);
+    //         liLen--;
+    //         emrTabs(tabsBox);
+    //       }
+    //     } else {
+    //       oLis[i].onclick = function(e){
+    //         var newLi = document.createElement('li');
+    //         var newTabCon = document.createElement('div');
+
+    //         newLi.className = 'active';
+    //         newLi.innerHTML = '标签'+ liLen + ' <span class="emr-tab-remove" style="cursor:pointer;">X</span>';
+    //         newTabCon.className = 'tab-content';
+    //         oUl.insertBefore(newLi, oUl.childNodes[liLen+1]);
+    //         newTabCon.innerHTML = 'tab-content ' + liLen;
+    //         oTabContentsBox.insertBefore(newTabCon, oTabContentsBox.childNodes[liLen+1]);
+    //         emrTabs(tabsBox);
+    //       }
+    //     }
+    //   }
+    // }
+  </script>
+</body>
+</html>

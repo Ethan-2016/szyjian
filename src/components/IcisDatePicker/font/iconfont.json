@@ -1,0 +1,23 @@
+{
+  "id": "2518449",
+  "name": "时间",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "19594561",
+      "name": "关闭",
+      "font_class": "close",
+      "unicode": "e683",
+      "unicode_decimal": 59011
+    },
+    {
+      "icon_id": "1314415",
+      "name": "时间",
+      "font_class": "shijian",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    }
+  ]
+}

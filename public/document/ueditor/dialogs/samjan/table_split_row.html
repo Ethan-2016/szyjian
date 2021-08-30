@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>表格内容切割分行属性及字数设置</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th>设置分割属性</th>
+        <th>设置每行字数</th>
+      </tr>
+      <tr>
+        <td><input type="text" id="rel" placeholder="请输入英文"></td>
+        <td><input type="text" id="size" placeholder="请输入数值" /></td>
+      </tr>
+    </table>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'settingsplitrow';
+    var baseUrl = 'dialogs/samjan';
+
+    window.onload = function() {
+      var td;
+      oNode = editor.selection.getStart();
+      if(oNode && oNode.tagName === 'TD') {
+        td = oNode;
+      } else if (oNode.parentNode.tagName === 'TD'){
+        td = oNode.parentNode.width 
+      }
+      $G('rel').value = td.getAttribute('changerow');
+      $G('size').value = td.getAttribute('changerownum');
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      var obj = {
+        rel: $G('rel').value.trim() || '',
+        num: $G('size').value.trim() || ''
+      }
+
+      if(!obj.rel){
+        alert('分割属性不能为空');
+        return false;
+      }else if(!obj.num){
+        alert('每行字数')
+        return false;
+      }
+
+      if(oNode && oNode.tagName === 'TD') {
+        console.log(oNode.closest('td'));
+        oNode.setAttribute('changerow', obj.rel);
+        oNode.setAttribute('changerownum', obj.num);
+      } else if (oNode.parentNode.tagName === 'TD'){
+        // var otable = UE.dom.domUtils.findParentByTagName(oNode, 'TABLE', false);
+
+        oNode.parentNode.width = obj.tablecellwidth;
+        oNode.parentNode.style.width = obj.tablecellwidth + 'px';
+        // otable.style.tableLayout = 'fixed';
+      } else {
+        alert('节点不是单元格');
+      }
+    };
+  </script>
+</body>
+</html>

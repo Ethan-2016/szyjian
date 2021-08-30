@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>单选项目输入域名</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th><span>输入长度</span></th>
+      </tr>
+      <tr>
+        <td><input type="text" id="tablecellwidth" placeholder="请输入数值"" /></td>
+      </tr>
+    </table>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'tablecellwidth';
+    var baseUrl = 'dialogs/samjan';
+
+    window.onload = function() {
+      oNode = editor.selection.getStart();
+      console.log(oNode, 'oNode get');
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      var obj = {
+        tablecellwidth: $G('tablecellwidth').value || ''
+      }
+
+      if(oNode && oNode.tagName === 'TD') {
+        var otable = UE.dom.domUtils.findParentByTagName(oNode, 'TABLE', false);
+
+        oNode.width = obj.tablecellwidth;
+        oNode.style.width = obj.tablecellwidth + 'px';
+        otable.style.tableLayout = 'fixed';
+      } else if (oNode.parentNode.tagName === 'TD'){
+        var otable = UE.dom.domUtils.findParentByTagName(oNode, 'TABLE', false);
+
+        oNode.parentNode.width = obj.tablecellwidth;
+        oNode.parentNode.style.width = obj.tablecellwidth + 'px';
+        otable.style.tableLayout = 'fixed';
+      } else {
+        alert('节点不是单元格');
+      }
+    };
+  </script>
+</body>
+</html>

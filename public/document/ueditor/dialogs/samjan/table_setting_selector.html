@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>设置表格长度及选择器命名（类选择器及id选择器）</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th>设置表格长度（默认为原生的宽度）</th>
+        <th>类选择器命名（类选择器以空格为间隔）</th>
+        <th>id选择器命名</th>
+      </tr>
+      <tr>
+        <td>
+          <input type="text" id="table-width" placeholder="数字或百分比">
+        </td>
+        <td>
+          <input type="text" id="class-selector" value="form-table">
+        </td>
+        <td>
+          <input type="text" id="id-selector" value="form-table">
+        </td>
+      </tr>
+    </table>
+    <div class="tips" style="padding: 20px 5px;">
+      <p>提示：</p>
+      <p>请聚焦到表头列内再设置;</p>
+      <p>设置表格最小宽度为100%，设置大于100%时有效;</p>
+      <p>选择器命名必须为“form-table”，否则无效; 如果不需要固定表头的（如告知书），id选择器命名设为空；</p>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'tablecellwidth';
+    var baseUrl = 'dialogs/samjan';
+    var table;
+
+    window.onload = function() {
+      oNode = editor.selection.getStart();
+      table = oNode.closest('table');
+      var tableW = table.style.width;
+      
+      $G('table-width').value = (tableW.indexOf('px') > -1 ? tableW.split('px')[0] : tableW) || table.offsetWidth;
+      $G('class-selector').value = table.className || 'form-table';
+      $G('id-selector').value = table.id || 'form-table';
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      var wNum = $G('table-width').value;
+      var tableW;
+
+      if(wNum.indexOf('%') > -1){
+        tableW = wNum;
+      } else {
+        tableW = wNum + 'px';
+      }
+
+      table.style.width = tableW;
+      table.className = $G('class-selector').value || '';
+      table.id = $G('id-selector').value || '';
+    };
+  </script>
+</body>
+</html>

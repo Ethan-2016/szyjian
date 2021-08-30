@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <title>单选项目输入域名</title>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" value="emrField"/>
+    <table class="table emr-setting-table">
+      <tr>
+        <th><span>控件名称</span><span class="label label-important">*</span></th>
+        <th><span>控件ID</span></th>
+        <th><span>排列方式</span></th>
+      </tr>
+      <tr>
+        <td><input type="text" id="controlName" placeholder="必填项目" /></td>
+        <td><input type="text" id="controlId" placeholder="必填项目" /></td>
+        <td>
+          <label><input type="radio" name="orient" id="horizontal" value="horizontal" checked="checked" />横排</label>
+          <label><input type="radio" name="orient" id="vertical" value="vertical" />竖排</label>
+        </td>
+      </tr>
+    </table>
+    <div class="emr-tab">
+      <ul class="emr-tab-list">
+        <li class="item active">固定数据</li>
+        <li class="item">动态数据</li>
+      </ul>
+      <div class="emr-tab-content">
+        <div id="fixed" class="content active">
+          <div class="foot-btn" style="margin: 10px;">
+            <button class="btn primary" id="add-option" onclick="fnAdd();">添加选项</button>
+          </div>
+          <table id="options-table" class="table emr-setting-table">
+            <thead>
+              <tr>
+                <th width="50px"><span>选中</span></th>
+                <th><span>选项</span></th>
+                <th><span>值</span></th>
+                <th width="130px"><span>操作</span></th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div id="dynamic" class="content">
+          <input type="text" value="" placeholder="支持GET请求的完整URL路径" style="margin: 10px; width: 90px;" id="url"/>
+          <div class="alert alert-info">
+            <table id="dynamic-table" class="table emr-setting-table">
+              <thead>
+                <tr>
+                  <th width="50px"><span>选中</span></th>
+                  <th><span>选项</span></th>
+                  <th><span>值</span></th>
+                  <th width="130px"><span>操作</span></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+            <h4>提示：</h4>
+            <ol>
+              <li>1.如果URL中的值不为空，此时不关注固定选项中有没有值，优先取值地址中的值；</li>
+              <li>2.地址中的json格式如下：<br />[{VALUE: '', TEXT: '', SELECTED: 0/1}]<br />其中SELECTED=0未选中，SELECTED=1已选中</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'radio';
+    var baseUrl = 'dialogs/samjan';
+    var radioMockData = [
+      {value: 0, text: 'radio1', selected: 0},
+      {value: 1, text: 'radio2', selected: 1},
+      {value: 2, text: 'radio3', selected: 0}
+    ]
+    var oRadio = new Radio();
+
+    window.onload = function() {
+      // tab选项卡
+      var oTab = document.getElementsByClassName('emr-tab')[0];
+      var aLi = oTab.getElementsByClassName('emr-tab-list')[0].getElementsByTagName('li');
+      var oTabBox = oTab.getElementsByClassName('emr-tab-content')[0];
+      var aBox = oTabBox.getElementsByClassName('content');
+      for(var i = 0; i < aLi.length; i++) {
+        aLi[i].index = i;
+        aLi[i].onclick = function() {
+          for(var j = 0; j < aLi.length; j++) {
+            aLi[j].className = 'item';
+            aBox[j].className = 'content';
+          }
+          aLi[this.index].className = "item active";
+          aBox[this.index].className = "content active";
+          
+          if(this.index === 1){ // 当前为动态表格
+            $G('dynamic-table').getElementsByTagName('tbody')[0].innerHTML = '';
+            oRadio.renderHtml($G('controlId').value, 'dynamic-table', radioMockData, 'none');
+          }
+        }
+      }
+
+      if (UE.plugins[thePlugin].editdom) {
+        oNode = UE.plugins[thePlugin].editdom;
+        var obj = eval('(' + oNode.getAttribute('obj') + ')');
+        var radios = oNode.getElementsByTagName('input');
+        
+        for (var key in obj) {
+          if ($G(key)) {
+            $G(key).value = obj[key];
+          }
+        }
+        oRadio.renderHtml(radios[0].name, 'options-table', radios);
+      }
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        UE.plugins[thePlugin].editdom;
+      }
+    };
+
+    dialog.onok = function (){
+      if( $G('controlName').value == '') {
+        alert('控件名称不能为空');
+        return false;
+      }
+      var gTitle=$G('controlName').value.replace(/\"/g,"&quot;");
+
+      var gChecked = 'orgchecked0';
+      // if ($G('orgchecked1').checked) gChecked = 'orgchecked1';
+
+      var obj = {
+        controlName: $G('controlName').value || '',
+        controlId: $G('controlId').value || '',
+        componentType: 'radio'
+      } 
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      var placeStyle = 'width: auto;';
+
+      if( !oNode ) {
+        try {
+          var options = fnParseOptions(obj.controlId,gChecked);
+          if(!options) {
+              alert('请添加选项');
+              return false;
+          }
+          //{|- 使用边界，防止用户删除了span标签
+          var html = `<span class="emr-field emr-plugin" style="${placeStyle}" emrplugin="radio" id="${obj.controlId}" title="${gTitle}" obj="${objstr}" contenteditable="false">`;
+              html += `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+              html += options;
+              html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+              html += '</span>';
+          editor.execCommand('insertHtml',html);
+          return true ;
+        } catch ( e ) {
+          try {
+              editor.execCommand('error');
+          } catch ( e ) {
+              alert('控件异常,请联系尚哲反馈或寻求帮助！');
+          }
+          return false;
+        }
+      } else {
+        // var gName=oNode.getAttribute('name').replace(/&quot;/g,"\"");
+        var html = '';
+        oNode.setAttribute('obj', objstr);
+        // oNode.setAttribute('title',gTitle);
+        // oNode.setAttribute('orgchecked',gChecked);
+        html += `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+        html += fnParseOptions(obj.controlId, gChecked);
+        html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+        oNode.innerHTML = html;
+        delete UE.plugins[thePlugin].editdom; 
+        return true;
+      }
+    };
+
+    function fnAdd(){
+      oRadio.renderHtml($G('controlId').value, 'options-table');
+    }
+    function moveUp(obj){
+      oRadio.moveUp(obj);
+    }
+    function moveDown(obj){
+      oRadio.moveDown(obj);
+    }
+    function deleteRow(obj){
+      oRadio.deleteRow(obj);
+    }
+
+    function fnParseOptions(gName,gChecked){
+      var oTabConWrapper = document.getElementsByClassName('emr-tab-content')[0];
+      var oTabCons = oTabConWrapper.getElementsByClassName('content');
+      var oTable = null;
+      var nTr = null;
+      var trLength = 0;
+      var html="";
+
+      for (var j = 0; j < oTabCons.length; j++) {
+        if (oTabCons[j].className.indexOf('active') > -1) {
+          oTable = oTabCons[j].getElementsByTagName('table');
+        }
+      }
+
+      nTr = oTable[0].getElementsByTagName('tr');
+      trLength = nTr.length;
+      
+      for(var i=0;i<trLength;i++){
+        var inputs = nTr[i].getElementsByTagName('input');
+
+        if(inputs.length>0) {
+          if(!inputs[1].value) continue;
+          var sChecked = '';
+          if(inputs[0].checked) sChecked = 'checked';// 在ie中，checked的值是空的 ,兼容IE 不要改为 checked="checked"
+          html += '<input class="emr-radio" name="'+gName+'" value="'+inputs[2].value+'" '+sChecked+' type="radio"/><span class="innerSpan">'+inputs[1].value+'</span>&nbsp;';
+          if(gChecked=='orgchecked1')//竖排
+            html+='<br/>';
+        }
+      }
+      return html;
+    }
+
+    function Radio(){}
+
+    Radio.prototype.moveUp = function(obj){
+      var oTable = $G("options-table");
+      while(obj.tagName !='TR') {
+          obj = obj.parentNode;
+      }
+      var minRowIndex = 1;
+      var curRowIndex = obj.rowIndex;
+      
+      if(curRowIndex-1>=minRowIndex) {
+        oTable.moveRow(curRowIndex,curRowIndex-1); 
+      }
+    }
+
+    Radio.prototype.moveDown = function(obj){
+      var oTable = $G("options-table");
+      while(obj.tagName !='TR')
+      {
+          obj = obj.parentNode;
+      }
+      var maxRowIndex = oTable.rows.length;
+      var curRowIndex = obj.rowIndex;
+      if(curRowIndex+1<maxRowIndex) {
+          oTable.moveRow(curRowIndex,curRowIndex+1); 
+      }
+    }
+
+    Radio.prototype.deleteRow = function(obj){
+      var oTable = $G("options-table");
+      while(obj.tagName !='TR') {
+          obj = obj.parentNode;
+      }
+      oTable.deleteRow(obj.rowIndex);
+    }
+
+    Radio.prototype.renderHtml = function(name, table, data, none){
+      var oTable = $G(table);
+      var oTbody = oTable.getElementsByTagName('tbody')[0];
+      if(!data){
+        var oTr = document.createElement('tr');
+        var htmlstr = `<td><input class="emr-radio" type="radio" name="${name?name:'emr'}"/></td>`;
+            htmlstr += `<td><input type="text" placeholder="选项名"/></td>`;
+            htmlstr += `<td><input type="text" placeholder="值"/></td>`
+            htmlstr += `<td><div class="btn-group"><button title="上移" class="btn small primary btn-moveup" href="javascript:void(0);" onclick="moveUp(this)"><i class="icon-white emr-icon icon-arrow-up"></i></button><button title="下移" class="btn small primary btn-moveup" href="javascript:void(0);" onclick="moveDown(this)"><i class="icon-white emr-icon icon-arrow-down"></i></button><button title="删除" class="btn small btn-default" href="javascript:void(0);" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+            oTr.innerHTML = htmlstr;
+            // oTable.insertRow(oTable.rows.length);
+            oTbody.appendChild(oTr);
+      }else{
+        for(var i = 0; i < data.length; i++){
+            var htmlstr = '';
+            var oTr = document.createElement('tr');
+            htmlstr += `<td><input class="emr-radio" type="radio" name="${name ? name : 'emr'}"/></td>`;
+            htmlstr += `<td><input type="text" placeholder="选项名" value="${(data[i].nextSibling && data[i].nextSibling.innerText) || data[i].text}"/></td>`;
+            htmlstr += `<td><input type="text" placeholder="值" value="${data[i].value}"/></td>`;
+            htmlstr += `<td><div class="btn-group" style="display:${none};}"><button title="上移" class="btn small primary btn-moveup" href="javascript:void(0);" onclick="moveUp(this)"><i class="icon-white emr-icon icon-arrow-up"></i></button><button title="下移" class="btn small primary btn-moveup" href="javascript:void(0);" onclick="moveDown(this)"><i class="icon-white emr-icon icon-arrow-down"></i></button><button title="删除" class="btn small btn-default" href="javascript:void(0);" onclick="deleteRow(this)"><i class="emr-icon icon-delete"></i></button></div></td>`;
+            oTr.innerHTML = htmlstr;
+            oTbody.appendChild(oTr);
+          }
+        }
+    }
+
+  function isIE() {
+    if(window.attachEvent){   
+      return true;
+    }
+    return false;
+  }
+  //moveRow在IE支持而在火狐里不支持！以下是扩展火狐下的moveRow
+  if (!isIE()) {
+    function getTRNode(nowTR, sibling) {
+      while (nowTR = nowTR[sibling]) if (nowTR.tagName == 'TR') break;
+      return nowTR;
+    }
+    if (typeof Element != 'undefined') {
+      Element.prototype.moveRow = function(sourceRowIndex, targetRowIndex){//执行扩展操作
+        if (!/^(table|tbody|tfoot|thead)$/i.test(this.tagName) || sourceRowIndex === targetRowIndex) return false;
+        var pNode = this;
+        if (this.tagName == 'TABLE') pNode = this.getElementsByTagName('tbody')[0]; //firefox会自动加上tbody标签，所以需要取tbody，直接table.insertBefore会error
+        var sourceRow = pNode.rows[sourceRowIndex-1], // 注意th不在tbody里要-1
+        targetRow = pNode.rows[targetRowIndex-1];
+        if (sourceRow == null || targetRow == null) return false;
+        var targetRowNextRow = sourceRowIndex > targetRowIndex ? false: getTRNode(targetRow, 'nextSibling');
+        if (targetRowNextRow === false) pNode.insertBefore(sourceRow, targetRow); //后面行移动到前面，直接insertBefore即可
+        else { //移动到当前行的后面位置，则需要判断要移动到的行的后面是否还有行，有则insertBefore，否则appendChild
+          if (targetRowNextRow == null) pNode.appendChild(sourceRow);
+          else pNode.insertBefore(sourceRow, targetRowNextRow);
+        }
+      }
+    }
+  }
+</script>
+</body>
+</html>

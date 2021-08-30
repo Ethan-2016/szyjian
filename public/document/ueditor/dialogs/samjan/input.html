@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>文本输入域</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" />
+    <table class="table emr-setting-table">
+      <tr>
+        <th><span>控件名称</span><span class="label label-important">*</span></th>
+        <th><span>控件ID</span></th>
+        <th><span>默认值</span></th>
+      </tr>
+      <tr>
+        <td><input type="text" id="controlName" placeholder="必填项目" /></td>
+        <td><input type="text" id="controlId" placeholder="必填项目" /></td>
+        <td><input type="text" id="defaultValue" placeholder="可选项目" /></td>
+      </tr>
+      <tr>
+        <th><span>数据类型</span></th>
+        <!-- <th><span>正则表达式</span></th> -->
+        <th>字段能否可编辑</th>
+        <th><span>关联事件按钮</span></th>
+      </tr>
+      <tr>
+        <td>
+          <select id="textType">
+            <option value="text">普通文本</option>
+            <option value="baseInfo">表头字段</option>
+            <option value="number">数字</option>
+            <option value="cardId">身份证号</option>
+            <option value="relevanceForm">关联表单</option>
+            <option value="signature">签名</option>
+            <option value="yyyy-MM-dd HH:mm:ss">日期时间（yyyy-MM-dd HH:mm:ss）</option>
+            <option value="yyyy-MM-dd HH:mm">日期时间（yyyy-MM-dd HH:mm）</option>
+            <option value="yyyy-MM-dd">日期（yyyy-MM-dd）</option>
+            <option value="HH:mm:ss">时间（HH:mm:ss）</option>
+            <option value="HH:mm">时间（HH:mm）</option>
+          </select>
+        </td>
+        <td>
+          <input type="radio" name="isEditable" value="Y" checked><span>是</span>
+          &nbsp; &nbsp;
+          <input type="radio" name="isEditable" value="N"><span>否</span>
+          <!-- <input type="text" id="textValidation" placeholder="自定义验证正则表达式" /> -->
+        </td>
+        <td>
+          <input type="radio" name="inputEvent" id="showReleBtn" value="Y"><span>是</span>
+          &nbsp; &nbsp;
+          <input type="radio" name="inputEvent" id="hideReleBtn" value="N" checked><span>否</span>
+        </td>
+      </tr>
+      <tr>
+        <th><span>关联表单及关联字段格式；formCode|form1key:form2key</span></th>
+        <th><span>表单关联表格第一行/最后一行</span></span></th>
+        <th><span> 最小宽度 & 字体大小</span></th>
+      </tr>
+      <tr>
+        <td style="height: 32px; line-height: 32px;">
+          <input type="text" id="formField" placeholder=""><br/>
+          <!-- <label><input type="radio" name="formHeadData" id="formHeadDataY" value="1"/>是</label>
+          <label><input type="radio" name="formHeadData" id="formHeadDataN" value="0"  checked="checked"/>否</label> -->
+        </td>
+        <td>
+          <select id="tRow">
+            <option value="first">第一行</option>
+            <option value="last">最后一行</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" id="width" value="120" style="width: 38px;" /> &
+          <input type="text" id="fontSize" value="16" style="width: 38px;" />px
+        </td>
+      </tr>
+      <tr>
+        <th>自定义选择器</th>
+        <th>对齐方式</th>
+        <th>关联事件/关联方法</th>
+      </tr>
+      <tr>
+        <td>
+          class：<input id="customClass" type="text" placeholder="自定义类" style="width:80px;"> &nbsp;&nbsp;
+          id：<input id="customId" type="text" placeholder="自定义id" style="width:80px;">
+        </td>
+        <td>
+          <select id="textAlign">
+            <option value="left">居左对齐</option>
+            <option value="center">居中对齐</option>
+            <option value="right">居右对齐</option>
+          </select>
+        </td>
+        <td>
+          <input id="customFn" type="text" placeholder="关联事件/关联方法"> 
+        </td>
+      </tr>
+      <tr>
+        <th><span>表头字段</span></th>
+        <th><span>打印空白无斜杠</span></th>
+      </tr>
+      <tr>
+        <td style="height: 32px; line-height: 32px;">
+          <label><input type="radio" name="formHeadData" id="formHeadDataY" value="1"/>是</label>
+          <label><input type="radio" name="formHeadData" id="formHeadDataN" value="0"  checked="checked"/>否</label>
+        </td>
+        <td style="height: 32px; line-height: 32px;">
+          <label><input type="radio" name="noBackslash" id="noBackslashY" value="1"/>是</label>
+          <label><input type="radio" name="noBackslash" id="noBackslashN" value="0"  checked="checked"/>否</label>
+        </td>
+      </tr>
+
+    </table>
+    <div class="tips">
+      <p>控件id不要以关键字命名;</p>
+      <p>表头信息在“数据类型”选择表头字段区分；</p>
+    </div>
+  </div>
+
+  <!-- <script src="../../../ueditor/third-party/laydate/laydate.js"></script> -->
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'input';
+
+    function createElement(type, name) {
+      var element = null;
+      try {
+        element = document.createElement(`<${type} name=${name}>`);
+      } catch (e) {
+        console.error(e);
+      }
+
+      if (element == null) {
+        element = document.createElement(type);
+        element.name = name;
+      }
+      return element;
+    }
+
+    function $id(id) {
+      return document.getElementById(id);
+    }
+
+    function getRadioVal(nameVal){
+      var inputs=document.getElementsByName(nameVal);
+      var checkVal="";
+      for(var i=0, len=inputs.length;i<len;i++){
+        if(inputs[i].checked){
+            checkVal=inputs[i].value;
+        }
+      }
+      return checkVal;
+    }
+
+    function formatCalenderType(str){
+      var calenderObj = {
+        datetype: '',
+        format: ''
+      }
+      switch (str){
+        case 'yyyy-MM-dd HH:mm:ss':
+          calenderObj.datetype = 'datetime';
+          calenderObj.format = str;
+          break;
+        case 'yyyy-MM-dd HH:mm':
+          calenderObj.datetype = 'datetime';
+          calenderObj.format = str;
+          break;
+        case 'yyyy-MM-dd':
+          calenderObj.datetype = 'date';
+          calenderObj.format = str;
+          break;
+        case 'HH:mm:ss':
+          calenderObj.datetype = 'time';
+          calenderObj.format = str;
+          break;
+        case 'HH:mm':
+          calenderObj.datetype = 'time';
+          calenderObj.format = str;
+          break;
+      }
+
+      return calenderObj;
+    }
+
+    window.onload = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        var tagName = document.getElementsByName('isEditable');
+        oNode = UE.plugins[thePlugin].editdom;
+        
+        var obj = eval('(' + oNode.getAttribute('obj') + ')');
+        for (var key in obj) {
+          if ($id(key)) {
+            $id(key).value = obj[key];
+          }
+        }
+        if(obj.releBtn === 'Y'){
+          $id('showReleBtn').setAttribute('checked', 'checked');
+        }else{
+          $id('hideReleBtn').setAttribute('checked', 'checked');
+        }
+        for(var j = 0; j < tagName.length; j++){
+         if(tagName[j].value === obj.fieldEdit){
+          tagName[j].setAttribute('checked','checked');
+         }
+        }
+
+        var formHeadDataNode = document.getElementsByName('formHeadData');
+        for(var j = 0; j < formHeadDataNode.length; j++){
+         if(formHeadDataNode[j].value == obj.formHeadData){
+          formHeadDataNode[j].setAttribute('checked','checked');
+         }
+        }
+
+        var noBackslashNode = document.getElementsByName('noBackslash');
+        for(var j = 0; j < noBackslashNode.length; j++){
+         if(noBackslashNode[j].value == obj.noBackslash){
+          noBackslashNode[j].setAttribute('checked','checked');
+         }
+        }
+
+      }
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        delete UE.plugins[thePlugin].editdom;
+      }
+    }
+
+    dialog.onok = function () {
+      if ($G('controlName').value === '') {
+        alert('控件名称不能为空');
+        return false;
+      }
+      var tagName = document.getElementsByName('isEditable');
+      var gTimestamp = new Date().getTime();
+      var controlId = $id('controlId').value;
+      var name = controlId + gTimestamp;
+      var gTitle = $id('controlName').value.replace(/\"/g, '&quot;');
+      var fieldEdit = '';
+      
+      for(var j = 0; j < tagName.length; j++){
+         if(tagName[j].checked){
+          fieldEdit = tagName[j].value;
+         }
+      }
+
+      var formHeadDataNode = document.getElementsByName('formHeadData');
+      var formHeadData = '';
+      for(var j = 0; j < formHeadDataNode.length; j++){
+        if(formHeadDataNode[j].checked){
+          formHeadData = formHeadDataNode[j].value;
+        }
+      }
+
+      var noBackslashNode = document.getElementsByName('noBackslash');
+      var noBackslash = '';
+      for(var j = 0; j < noBackslashNode.length; j++){
+        if(noBackslashNode[j].checked){
+          noBackslash = noBackslashNode[j].value;
+        }
+      }
+
+      var obj = {
+        controlName: $id('controlName').value || '',
+        controlId: $id('controlId').value.trim() || '',
+        defaultValue: $id('defaultValue').value || '',
+        // textValidation: $id('textValidation').value || '',
+        textType: $id('textType').value || '',
+        formField: $id('formField').value || '',
+        textAlign: $id('textAlign').value || '',
+        releBtn: getRadioVal('inputEvent'),
+        width: $id('width').value || '',
+        // fontColor: $id('fontColor').value || '',
+        fontSize: $id('fontSize').value || '',
+        customClass: $id('customClass').value || '',
+        conponentType: 'input',
+        fieldEdit: fieldEdit,
+        tRow: $id('tRow').value || '',
+        formHeadData: +formHeadData,
+        noBackslash: +noBackslash
+      };
+      // console.debug(obj);
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      var placeStyle = `position: relative; display: inline-flex; align-items: center; width: auto; font-size:${obj.fontSize}px;`; // 防止ueditor改变样式
+      var maskStyle = "display: block; position: absolute; left: 50%; right: 0; top: 0; bottom: 0; transform: translate(-50%); width: calc(100% - 16px); height: 1em; cursor: pointer;"
+      var style = `min-height: ${obj.fontSize}px; line-height: ${obj.fontSize}px;  min-width:${obj.width}px; font-size:${obj.fontSize}px; color: ${obj.fontColor}; text-align:${obj.textAlign}; cursor: pointer;`;
+      var onkeydown = `if(window.getSelection().focusOffset == 0) { if(event.keyCode == 8 || event.keyCode == 46) { return false; }}`;
+      var onblur = '';
+      var onclick = '';
+      var ondblclick = '';
+      var datetype = '';
+      var format = '';
+      var infoFlag = 'formhead';
+
+      // if(obj.textType !== 'baseInfo'){ // 表单头部病人基础信息字段
+      //   onblur = `this.setAttribute('contenteditable', false); if(!this.innerText){this.innerText='';}`;
+      //   onclick = `this.setAttribute('contenteditable', true); this.focus();`;
+      //   infoFlag = '';
+      // } else if (obj.textType === 'baseInfo' && obj.fieldEdit === 'Y'){
+      //   onblur = `this.setAttribute('contenteditable', false);`;
+      //   onclick = `this.setAttribute('contenteditable', true); this.focus();`;
+      //   // infoFlag = '';
+      // }
+      
+      // 2021-02-26 ding 无论是否为表头字段，只是要选择为不可编辑就设置该字段为不可编辑，
+      if(obj.fieldEdit === 'N'){ 
+          onblur = `this.setAttribute('contenteditable', false);`;
+          onclick = `this.setAttribute('contenteditable', false);`; // this.focus();
+          infoFlag = '';
+      }else{
+          onblur = `this.setAttribute('contenteditable', true);`;
+          onclick = `this.setAttribute('contenteditable', true); this.focus();`;
+      }
+
+      if(obj.textType === 'signature') {
+        ondblclick = `dblclickOpenSignDialog('', this)`;
+        onclick = `clickOpenSignDialog('', this)`;
+      }
+      
+      if(obj.textType.indexOf('yyyy') > -1 || obj.textType.indexOf('HH') > -1){
+        var formatObj = formatCalenderType(obj.textType);
+        datetype = formatObj.datetype;
+        format = formatObj.format;
+      }
+
+      if (!oNode) {
+        try {
+          var html = `<span class="emr-field emr-plugin" style="${placeStyle}" emrplugin="input" id="${obj.controlId}" title="${gTitle}" obj="${objstr}" contenteditable="false">`;
+          html += `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+          html += `<span class="emr-field emr-field-value ${obj.customClass}" formhead="${infoFlag}" name="${obj.controlId}" style="${style}" validation="${obj.textValidation}" contenteditable="false" onkeydown="${onkeydown}" onblur="${onblur}" onclick="${onclick}" ondblclick="${ondblclick}" datetype="${datetype}" format="${format}">${obj.defaultValue}</span>`;
+          if(obj.releBtn === 'Y') {
+            html +=`<a class="rele-even t-btn" href="javascript:void(0);" onclick="var e = window.event; releBtn(e,'${obj.textType}','${obj.formField}', '${obj.tRow}')">⋙</a>`
+          }
+          html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+          if(obj.textType.indexOf('yyyy') > -1 || obj.textType.indexOf('HH') > -1){
+            html += `<span style="${maskStyle}" class="emr-field data-time-mask"></span></span>`;
+          }else{
+            html += `</span>`;
+          }
+           editor.execCommand('insertHtml', html);
+          // if((obj.textType.indexOf('yyyy') > -1 || obj.textType.indexOf('HH') > -1) && obj.fieldEdit=="N"){
+          //   editor.window.initLaydate(editor);
+          // }
+          return true;
+        } catch (e) {
+          try {
+            editor.execCommand('error');
+          } catch (e) {
+            alert('控件异常,请联系尚哲反馈或寻求帮助！');
+          }
+          return false;
+        }
+      } else {
+        oNode.setAttribute('obj', objstr);
+        oNode.setAttribute('title', gTitle);
+        oNode.setAttribute('id', obj.controlId);
+        html = `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`
+        html += `<span class="emr-field emr-field-value" name="${obj.controlId}" style="${style}" validation="${obj.textValidation}" onkeydown="${onkeydown}" onblur="${onblur}" onclick="${onclick}" ondblclick="${ondblclick}" datetype="${datetype}" format="${format}">${obj.defaultValue}</span>`;
+        if(obj.releBtn === 'Y') {
+          html +=`<a class="rele-event-btn" href="javascript:void(0);" onclick="var e = window.event; releBtn(e,'${obj.textType}','${obj.formField}','${obj.tRow}')">⋙</a>`
+        }
+        html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+        if(obj.textType.indexOf('yyyy') > -1 || obj.textType.indexOf('HH') > -1){
+          html += `<span style="${maskStyle}" class="emr-field data-time-mask"></span>`;
+        }
+        oNode.innerHTML = html;
+        delete UE.plugins[thePlugin].editdom;
+        // if((obj.textType.indexOf('yyyy') > -1 || obj.textType.indexOf('HH') > -1) && obj.fieldEdit=="N"){
+        //   window.parent.document.getElementById('ueditor_0').contentWindow.initLaydate(dialog.editor);
+        // }
+        return true;
+      }
+    }
+
+    function blurFn(that){
+      onblur = `${that}.setAttribute('contenteditable', false); if(!${that}.innerText){${that}.innerText='';}`;
+      // onclick = `${that}.setAttribute('contenteditable', true); ${that}.focus();`;
+      infoFlag = '';
+    }
+
+  </script>
+</body>
+</html>

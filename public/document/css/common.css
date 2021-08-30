@@ -1,0 +1,279 @@
+[v-cloak]{
+    display: none !important;
+}
+html{
+	height: 100%;
+    min-width: 1024px;
+}
+body{
+    height: 100%;
+	margin: 0;
+	/* -webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none; */
+}
+p{
+	margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+}
+div,p{
+	box-sizing: border-box;
+}
+
+
+.el-menu--horizontal .el-submenu__icon-arrow{
+    color:#fff;
+}
+/* 主布局 */
+.content{
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+    background-color: #eeeeee;
+}
+.main-box{
+    padding: 10px;
+	height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+.main{
+    height: 100%;
+    padding: 10px;
+    background-color: #fff;
+}
+.comp{
+    /* border-bottom: 1px solid #DCDFE6; */
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding:10px;
+    background-color: #fff;
+    /* box-shadow: 0px 3px 10px #C0C4CC; */
+}
+.comp .title{
+	border-left: 3px solid #1DC5AA;
+	padding-left: 10px;
+    font-size: 14px;
+}
+/*↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓表格表头固定，内容滚动↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓*/
+        .table-roll.el-table{
+            width: 100%;
+            height: 85%;
+            overflow: auto;
+            padding: 0;
+            margin: 0;
+            color: black;
+            border-bottom: 1px solid #EBEEF5;
+        }
+        .table-roll.el-table::before{
+            height: 0;
+        }
+        .table-roll.el-table th {
+            height: 40px;
+            text-align: center;
+        }
+        .table-roll.el-table th,.table-roll.el-table td{
+            padding: 5px 0;
+        }
+        .table-roll .el-table__header-wrapper{
+            /* position: fixed;
+            z-index: 1;
+            overflow: hidden; */
+            height: 7%;
+        
+        }
+        .table-roll .el-table__body-wrapper{/*内容滚动*/
+            /* margin-top: 40px; */
+            height: 93%;
+            overflow: auto;
+        }
+        .table-roll .el-table__body-wrapper::-webkit-scrollbar-track{
+            background-color: #F5F5F5;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.22);
+            -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.22);
+            border-radius: 50px;
+        }
+        .table-roll .el-table__body-wrapper::-webkit-scrollbar{
+            width: 5px;
+            height: 10px;
+            background-color: #FFD3D3D3;
+            border-radius: 50px;
+        }
+        .table-roll .el-table__body-wrapper::-webkit-scrollbar-thumb{
+            background-color:#9FA0A0;
+            border-radius: 50px;
+        }
+/*↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑表格表头固定，内容滚动↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑*/
+    .table-btns {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #F3F3F3;
+        height: 50px;
+        padding: 0 10px;
+        margin-bottom: 10px;
+    }
+
+
+/*↓↓↓↓↓↓↓↓输入框与按钮↓↓↓↓↓↓↓*/
+    .input-line>.el-input__inner {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .sel-btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: 0;
+    }
+/*↑↑↑↑↑↑↑↑输入框与按钮↑↑↑↑↑↑↑↑*/
+
+
+.table-box{
+    background-color: #fff;
+    padding: 0 10px 10px 10px;
+}
+
+.table-search{
+	display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.table-search .search-cell{
+	display: flex;
+	align-items: center;
+	margin-right: 20px;
+}
+.table-search .search-title{
+	white-space:nowrap;
+}
+.sj-cell{
+    /* box-shadow: 0px 5px 10px #C0C4CC; */
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+.sj-cell .title{
+    /* background-color: #eeeeee; */
+    height: 45px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 10px;
+}
+
+/* pagetitle */
+
+/* 搜索栏 */
+.search-box{
+	/* border: 1px solid #C0C4CC; */
+    /* height: 60px; */
+	display: flex;
+    flex-wrap: wrap;
+	/* justify-content: space-between; */
+    align-items: center;
+    /* margin-bottom: 1px; */
+    background-color: #fff;
+    /* box-shadow: 0px 5px 10px #C0C4CC; */
+    padding: 10px ;
+}
+.search-box1{
+	border-bottom: 0;
+    box-shadow: 0px 5px 10px #C0C4CC;
+}
+.search-box .search-cells{
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.search-cell{
+	display: flex;
+	align-items: center;
+	margin-right: 20px;
+    /* margin-bottom: 10px; */
+}
+/* .search-box .el-button{
+    margin-bottom: 10px;
+} */
+.search-box .el-input{
+	width: 150px;
+}
+
+.search-name{
+    white-space:nowrap;
+    margin-right: 0px;
+    font-size: 13px;
+    color: #616161;
+}
+
+.search-box .search-btns{
+    margin-right: 5px;
+}
+/* 分页 */
+.page-box{
+	text-align: right;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* table 原生 */
+.sj-table{
+    width: 100%;
+    background-color: #DCDFE6;
+}
+.sj-table td{
+	background-color: #fff;
+    padding: 5px 5px;
+    /* text-align: center; */
+    font-size: 14px;
+}
+.sj-table th{
+    background-color: #eef1f6;
+    color: rgb(96, 98, 102);
+    /* height: 34px; */
+    line-height: 23px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0;
+}
+
+/* 表格中switch样式调整 */
+.el-switch{
+    position: relative;
+}
+
+.el-switch .el-switch__label{
+    position: absolute;
+    z-index: 3;
+    display: none;
+}
+.el-switch .el-switch__label.is-active{
+    display: block;
+    color:#fff;
+}
+.el-switch .el-switch__label--left{
+    left: 21px;
+}
+.el-switch .el-switch__label--right{
+    right: 21px;
+}
+
+/* 弹框样式 */
+.el-dialog__header{
+    background-color: #eee;
+}
+.el-dialog__footer{
+    border-top: 1px solid#eee;
+    padding: 10px 20px;
+}
+
+/* 面包屑,当前页面高亮 */
+.sj-breadcrumb{
+    color: #00C8AD;
+}

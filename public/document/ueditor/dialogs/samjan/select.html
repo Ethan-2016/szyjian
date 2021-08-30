@@ -1,0 +1,579 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>文本输入域</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <link type="text/css" rel="stylesheet" href="./dialog.css" />
+  <script type="text/javascript" src="../internal.js"></script>
+  <script type="text/javascript" src="../../select/css/select.css"></script>
+  <script type="text/javascript" src="../../jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="../../select/js/moment.min.js"></script>
+  <script type="text/javascript" src="../../select/js/select.js"></script>
+</head>
+<body>
+  <div class="content">
+    <input type="hidden" id="hideName" />
+    <table class="table emr-setting-table">
+      <tr>
+        <th colspan="2"><span>控件名称</span><span class="label label-important">*</span></th>
+        <th colspan="2"><span>控件ID</span></th>
+        <!-- <th><span>默认值</span></th> -->
+      </tr>
+      <tr>
+        <td colspan="2"><input type="text" id="controlName" placeholder="必填项目" /></td>
+        <td colspan="2"><input type="text" id="controlId" placeholder="必填项目" /></td>
+        <!-- <td><input type="text" id="defaultValue" placeholder="可选项目" /></td> -->
+      </tr>
+      <tr>
+        <th colspan="2"><span>数据来源</span><span class="label label-important">*</span></th>
+        <th colspan="2"><span>是否多选</span><span class="label label-important">*</span></th>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <select id="dataSource" onchange="changeDataSource">
+            <option value="manual">手动添加</option>
+            <option value="interface">接口添加</option>
+          </select>
+        </td>
+        <td colspan="2">
+          <label><input type="radio" name="multiple" value="true">&nbsp;是</label>
+          &nbsp; &nbsp;
+          <label><input type="radio" checked name="multiple" value="false">&nbsp;否</label>
+          <!-- <input type="text" id="textValidation" placeholder="自定义验证正则表达式" /> -->
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2"><span>表头字段</span></th>
+        <th colspan="2"><span>字段能否可编辑</span></th>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 32px; line-height: 32px;">
+          <label><input type="radio" name="formHeadData" id="formHeadDataY" value="1"/>是</label>
+          <label><input type="radio" name="formHeadData" id="formHeadDataN" value="0"  checked="checked"/>否</label>
+        </td>
+        <td colspan="2">
+          <label><input type="radio" name="isEditable" value="1" checked="checked"/>是</label>
+          <label><input type="radio" name="isEditable" value="0"/>否</label>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2"><span>是否可输入</span></th>
+        <th colspan="2"><span></span></th>
+      </tr>
+      <tr>
+        <td colspan="2" style="height: 32px; line-height: 32px;"  onclick="changeIsInput()">
+          <label><input type="radio" name="isInput" id="isInputY" value="1" />是</label>
+          <label><input type="radio" name="isInput" id="isInputN" value="0"  checked="checked"/>否</label>
+        </td>
+        <td colspan="2">
+        </td>
+      </tr>
+      <tr id="manualSetup" class="data-sorce-setup">
+        <td colspan="4">
+          <select multiple class="options-box" id="options-box" style="border:1px solid #999; padding: 10px; margin: 10px 0;"></select>
+          <div class="btns">
+            <input type="text" class="option-text" id="option-text" placeholder="选项" style="width: 170px;">
+            <input type="text" class="option-text" id="option-value" placeholder="值" style="width: 50px;">
+            <input type="button" class="btn primary" value="新增" onclick="addOption()">
+            <input type="button" class="btn primary" value="修改" onclick="changeOption()">
+            <input type="button" class="btn danger" value="删除" onclick="deleteOption()">
+          </div>
+        </td>
+      </tr>
+      <tr id="interfaceSetup" class="data-sorce-setup" style="display: none">
+        <td colspan="4">
+          <div style="margin: 10px;">
+            数据接口：<input type="text" id="interfaceWeb" placeholder="必填项目" />
+          </div>
+          <div style="display: flex;">
+            <div style="margin: 10px;">
+              是否可搜索：
+              <label><input checked type="radio" name="filterable" value="true">&nbsp;是</label>
+              &nbsp; &nbsp;
+              <label><input type="radio" name="filterable" value="false">&nbsp;否</label>
+            </div>
+            <div style="margin: 10px;" id="isPutKey">
+              是否传Key：
+              <label><input type="radio" name="isPutKey" value="1">&nbsp;是</label>
+              &nbsp; &nbsp;
+              <label><input checked type="radio" name="isPutKey" value="0">&nbsp;否</label>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div style="flex: 1; margin: 10px;">
+              <label>项目名(value)<span class="label label-important">*</span>：<input style="width: 50%;" type="text" id="optionName" value="val"></label>
+            </div>
+            <div style="flex: 1; margin: 10px;">
+              <label>值名(key)<span class="label label-important">*</span>：<input style="width: 50%;" type="text" id="valName" value="option"></label>
+            </div>
+          </div>
+          <!-- <div style="margin: 10px;">
+            请求方式：
+            <label><input checked type="radio" name="requestMethod" value="GET">&nbsp;GET</label>
+            &nbsp; &nbsp;
+            <label><input type="radio" name="requestMethod" value="POST">&nbsp;POST</label>
+          </div> -->
+          <div>
+            <div class="para-info-item">
+              <input type="text" class="para-name" data-name="paraName" placeholder="参数名" style="margin-right: 10px; width: 120px;">
+              <input type="text" class="control-id" data-name="controlId" placeholder="对应控件ID" style="margin-right: 10px; width: 120px;">
+              <input type="text" class="para-initval" data-name="paraInitVal" placeholder="默认值" style="margin-right: 10px; width: 200px;">
+              <input type="button" class="btn primary" value="新增" onclick="addPara(event)">
+              <input type="button" class="btn danger" value="删除" onclick="delPara(event)">
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2"><span>字体颜色</span></th>
+        <th colspan="2"><span> 最小宽度 & 字体大小</span></th>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="color" id="fontColor" value="#FFF" /></td>
+        <td colspan="2">
+          <input type="text" id="width" value="120" style="width: 38px;" /> &
+          <input type="text" id="fontSize" value="16" style="width: 38px;" />px
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <script type="text/javascript">
+    var oNode = null, thePlugin = 'select';
+
+    function createElement(type, name) {
+      var element = null;
+      try {
+        element = document.createElement(`<${type}>`);
+      } catch (e) {
+        console.error(e);
+      }
+
+      if (element == null) {
+        element = document.createElement(type);
+        element.name = name;
+      }
+      return element;
+    }
+    
+    function addOption(options){
+      var newOption;
+      if(!options){
+        var optName = $id('option-text').value;
+        var optVal = $id('option-value').value;
+        newOption = document.createElement('option');
+        if(optName === ''){
+          alert('请输入列值名称');
+          return ;
+        }
+        newOption.innerText = optName;
+        newOption.value = optVal;
+        newOption.contenteditable = true;
+        $id('option-text').value = '';
+        $id('option-value').value = '';
+        $id('options-box').appendChild(newOption);
+        $id('option-text').focus();
+      } else {
+        var html = '';
+        for(var i = 0; i < options.length; i++){
+          // console.log(options[i].innerText, 'options innerText');
+           html += `<option value="${options[i].value}">${options[i].innerText}</option>`;
+        }
+        $id('options-box').innerHTML = html;
+      }
+      optioinChange();
+    }
+
+    function optioinChange(){
+      var selectList = $id('options-box');
+      var optionList = selectList.options;
+      if(selectList){
+        for(let i = 0; i < optionList.length; i++){
+          optionList[i].addEventListener('click', function(){
+            // optionList[i].contenteditable = true;
+            $id('option-text').value = this.innerText;
+            $id('option-value').value = this.value;
+          })
+        }
+      }
+    }
+
+    function deleteOption(node){
+      var selectList = $id('options-box');
+      var optionList = selectList.options;
+
+      for ( var i = optionList.length - 1 ; i >= 0 ; i-- ) {
+        if (optionList[i].selected) selectList.remove(i) ;
+      }
+    }
+
+    function changeOption(){
+      var selectList = $id('options-box');
+      var optionList = selectList.options;
+
+      for ( var i = optionList.length - 1 ; i >= 0 ; i-- ) {
+        if (optionList[i].selected) {
+          optionList[i].innerText = $id('option-text').value;
+          optionList[i].value = $id('option-value').value;
+        }
+      }
+      $id('option-text').value = '';
+      $id('option-value').value = '';
+      $id('option-text').focus();
+    }
+
+    
+    function addPara(event){
+        let eventTarget = event.target
+        let optNameNodes = document.getElementsByClassName("para-name")
+        let optNameLength = optNameNodes.length
+        let emptyCount = 0;
+        for(let i = 0; i< optNameLength; i++){
+          if(!optNameNodes[i].value){
+            emptyCount++
+          }
+        }
+        
+        if(emptyCount){
+          alert("有参数名为空")
+        } else {
+          let parentNode = eventTarget.parentNode
+          let cloneNode = parentNode.cloneNode(true);
+          cloneNode.setAttribute('data-createtime', +new Date())
+          let childNodes = cloneNode.childNodes
+          let childNodesLen = childNodes.length
+          for(let i = 0; i < childNodesLen; i++){
+            // console.log(childNodes[i], childNodes[i].nodeName)
+            if(childNodes[i].getAttribute && childNodes[i].getAttribute("type")=="text"){
+              childNodes[i].value = ""
+            }
+          }
+          parentNode.parentNode.appendChild(cloneNode);
+        }
+    }
+
+    function delPara(event){
+      let eventTarget = event.target
+      let parentNode = eventTarget.parentNode
+      let optNameNodes = document.getElementsByClassName("para-name")
+      if(optNameNodes.length>1){
+        parentNode.parentNode.removeChild(parentNode);
+      }else{
+        let childNodes = parentNode.childNodes
+        let childNodesLen = childNodes.length
+        for(let i = 0; i < childNodesLen; i++){
+          if(childNodes[i].getAttribute && childNodes[i].getAttribute("type")=="text"){
+            childNodes[i].value = ""
+          }
+        }
+      }
+
+    }
+
+    function $id(id) {
+      return document.getElementById(id);
+    }
+    function $class(className) {
+      return document.getElementsByClassName(className);
+    }
+    
+    window.onload = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        oNode = UE.plugins[thePlugin].editdom;
+        var obj = eval('(' + oNode.getAttribute('obj') + ')');
+        for (var key in obj) {
+          if ($id(key)) {
+            $id(key).value = obj[key];
+          }
+        }
+        if($id("dataSource").value=='interface'){
+          $id("manualSetup").style.display="none"
+          $id("interfaceSetup").style.display="table-row"
+        }
+
+        if(!obj.multiple){
+          document.getElementsByName('multiple')[1].setAttribute('checked', "checked")
+          document.getElementsByName('multiple')[0].removeAttribute('checked')
+        }else{
+          document.getElementsByName('multiple')[0].setAttribute('checked', "checked")
+          document.getElementsByName('multiple')[1].removeAttribute('checked')
+        }
+        if(!obj.filterable){
+          document.getElementsByName('filterable')[1].setAttribute('checked', "checked")
+          document.getElementsByName('filterable')[0].removeAttribute('checked')
+        }else{
+          document.getElementsByName('filterable')[0].setAttribute('checked', "checked")
+          document.getElementsByName('filterable')[1].removeAttribute('checked')
+        }
+        if(obj.paraArrayStr){
+          // let paraArray = JSON.parse(obj.paraArrayStr.replace(/\'/g, '\"'))
+          let paraArray = obj.paraArrayStr
+          let paraInfoItemModel = document.getElementsByClassName('para-info-item')[0];
+          let paraArrayLen = paraArray.length
+          for(let j = 0; j < paraArrayLen; j++){
+            let paraInfoItem
+            if(j>0){
+              paraInfoItem = paraInfoItemModel.cloneNode(true);
+            }else{
+              paraInfoItem = paraInfoItemModel
+            }
+            let childNodes = paraInfoItem.childNodes
+            let childNodesLen = childNodes.length
+            let obj = {}
+            for(let i = 0; i < childNodesLen; i++){
+              if(childNodes[i].getAttribute && childNodes[i].getAttribute("type")=="text"){
+                childNodes[i].value = paraArray[j][childNodes[i].dataset.name]
+              }
+            }
+            if(j>0){
+              paraInfoItemModel.parentNode.appendChild(paraInfoItem);
+            }
+          }
+        }
+        let oldOptions = oNode.getElementsByTagName('option');
+        addOption(oldOptions);
+        // console.log(oldOptions, 'oldOptions');
+        optioinChange();
+
+        var formHeadDataNode = document.getElementsByName('formHeadData');
+        for(var j = 0; j < formHeadDataNode.length; j++){
+          if(formHeadDataNode[j].value == obj.formHeadData){
+            formHeadDataNode[j].setAttribute('checked','checked');
+          }
+        }
+
+        var isInputNode = document.getElementsByName('isInput');
+        for(var j = 0; j < isInputNode.length; j++){
+          if(isInputNode[j].value == obj.isInput){
+            isInputNode[j].setAttribute('checked','checked');
+            let isPutKeyNode = document.getElementById("isPutKey")
+            if(j != 0){
+              if(isPutKeyNode){
+                isPutKeyNode.style.display = "block"
+              }
+            }else{
+              if(isPutKeyNode){
+                isPutKeyNode.style.display = "none"
+              }
+            }
+          }
+        }
+        
+        var isEditableNode = document.getElementsByName('isEditable');
+        for(var j = 0; j < isEditableNode.length; j++){
+          if(isEditableNode[j].value == obj.isEditable){
+            isEditableNode[j].setAttribute('checked','checked');
+          }
+        }
+
+        var isPutKeyNode = document.getElementsByName('isPutKey');
+        for(var j = 0; j < isPutKeyNode.length; j++){
+          if(isPutKeyNode[j].value == obj.isPutKey){
+            isPutKeyNode[j].setAttribute('checked','checked');
+          }
+        }
+      }
+    }
+
+    dialog.oncancel = function () {
+      if (UE.plugins[thePlugin].editdom) {
+        delete UE.plugins[thePlugin].editdom;
+      }
+    }
+
+    dialog.onok = function () {
+      if ($G('controlName').value === '') {
+        alert('控件名称不能为空');
+        return false;
+      }
+
+      // var gTimestamp = new Date().getTime();
+      var controlId = $id('controlId').value;
+      // var name = controlId + gTimestamp;
+      var gTitle = $id('controlName').value.replace(/\"/g, '&quot;');
+
+
+      
+      let filterableArr = document.getElementsByName('filterable');
+      let filterable;
+      for(let j = 0; j < filterableArr.length; j++){
+         if(filterableArr[j].checked){
+          filterable = filterableArr[j].value;
+         }
+      }
+
+      let multipleArr = document.getElementsByName('multiple');
+      let multiple;
+      for(let j = 0; j < multipleArr.length; j++){
+         if(multipleArr[j].checked){
+          multiple = multipleArr[j].value;
+         }
+      }
+
+      let paraInfoItems = document.getElementsByClassName('para-info-item');
+      let paraArray = []
+      for(let j = 0; j < paraInfoItems.length; j++){
+        let childNodes = paraInfoItems[j].childNodes
+        let childNodesLen = childNodes.length
+        let obj = {}
+        let isEmpty = true
+        for(let i = 0; i < childNodesLen; i++){
+          // console.log(childNodes[i], childNodes[i].nodeName)
+          if(childNodes[i].getAttribute && childNodes[i].getAttribute("type")=="text"){
+            if(childNodes[i].dataset.name == 'paraName' && childNodes[i].value){
+              isEmpty = false
+            }
+            obj[childNodes[i].dataset.name] = childNodes[i].value
+          }
+        }
+        if(!isEmpty){
+          paraArray.push(obj);
+        }
+      }
+
+      var formHeadDataNode = document.getElementsByName('formHeadData');
+      var formHeadData = '';
+      for(var j = 0; j < formHeadDataNode.length; j++){
+        if(formHeadDataNode[j].checked){
+          formHeadData = formHeadDataNode[j].value;
+        }
+      }
+
+      var isInputNode = document.getElementsByName('isInput');
+      var isInput = '';
+      for(var j = 0; j < isInputNode.length; j++){
+        if(isInputNode[j].checked){
+          isInput = isInputNode[j].value;
+        }
+      }
+      
+      var isEditableNode = document.getElementsByName('isEditable');
+      var isEditable = '';
+      for(var j = 0; j < isEditableNode.length; j++){
+         if(isEditableNode[j].checked){
+          isEditable = isEditableNode[j].value;
+         }
+      }
+
+
+      var isPutKeyNode = document.getElementsByName('isPutKey');
+      var isPutKey = '';
+      for(var j = 0; j < isPutKeyNode.length; j++){
+         if(isPutKeyNode[j].checked){
+          isPutKey = isPutKeyNode[j].value;
+         }
+      }
+
+      console.log(!isInput, +isPutKey)
+      var obj = {
+        controlName: $id('controlName').value || '',
+        controlId: $id('controlId').value.trim() || '',
+        // defaultValue: $id('defaultValue').value || '',
+        // textValidation: $id('textValidation').value || '',
+        // textType: $id('textType').value || '',
+        // textAlign: $id('textAlign').value || '',
+        paraArrayStr: paraArray.length?paraArray:null,
+        filterable: filterable=="true"?true:false,
+        multiple: multiple=="true"?true:false,
+        dataSource: $id('dataSource').value || '',
+        interfaceWeb: $id('interfaceWeb').value || '',
+        width: $id('width').value || '',
+        fontColor: $id('fontColor').value || '',
+        fontSize: $id('fontSize').value || '',
+        optionName: $id('optionName').value || '',
+        valName: $id('valName').value || '',
+        conponentType: 'select',
+        formHeadData: +formHeadData,
+        isEditable: +isEditable,
+        isInput: +isInput,
+        isPutKey: +(!(+isInput) && +isPutKey)
+      };
+      var objstr = JSON.stringify(obj).replace(/\"/g, '\'');
+      var placeStyle = 'width: auto;'; // 防止ueditor改变样式
+      var style = `min-height: 16px; width:${obj.width}px; font-size:${obj.fontSize}px; color: ${obj.fontColor}; text-align:${obj.textAlign}; border-bottom: 1px solid #000;`;
+      // var onkeydown = `if(window.getSelection().focusOffset == 0) { if(event.keyCode == 8 || event.keyCode == 46) { return false; }}`;
+      // var onblur = `this.setAttribute('contenteditable', false)`;
+      // var onclick = `this.setAttribute('contenteditable', true);this.focus();`;
+      // console.log("multiplemultiple", style)
+      if (!oNode) {
+        try {
+          var html = `<span class="emr-field emr-plugin" style="${placeStyle}" emrplugin="select" id="${obj.controlId}" title="${gTitle}" obj="${objstr}" contenteditable="false">`;
+          html += `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+          html += `<span class="emr-field emr-select-box">`
+            // html += `<select class="emr-field emr-field-value" name="${obj.controlId}" style="${style}" validation="${obj.textValidation}" contenteditable="false" ><option  style="display:none;"></option>${$id('options-box').innerHTML}</select>`;
+          html += `<select style="display:none;">${$id('options-box').innerHTML}</select>`;
+          //input和span之间不能有空格 filterable="true"  data-url=""    multiple="multiple"
+          html += `<input type="text" 
+          name="${obj.controlId}" 
+          multiple="${obj.multiple?'multiple':''}" 
+          ${obj.dataSource}
+          filterable="${(obj.dataSource=="interface"&&obj.filterable)?'filterable':''}"
+          ${((obj.dataSource=="interface"&&obj.filterable) || obj.isInput)?'':'readonly'}
+          validation="${obj.textValidation}" contenteditable="false"  
+          class="emr-field emr-field-value emr-select-input"
+          autocomplete="off"
+          data-valname="${obj.dataSource=="interface"?obj.valName:''}"
+          data-optionname="${obj.dataSource=="interface"?obj.optionName:''}"
+          data-url="${obj.dataSource=="interface"?obj.interfaceWeb:''}"
+          style="${style}" value=""></input><span class="emr-field emr-select-tags"></span>`
+          html += `</span>`;
+          html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+          html += `</span>`;
+          editor.execCommand('insertHtml', html);
+          window.parent.document.getElementById('ueditor_0').contentWindow.emrSelect.init()
+          return true;
+        } catch (e) {
+          try {
+            editor.execCommand('error');
+          } catch (e) {
+            alert('控件异常,请联系尚哲反馈或寻求帮助！');
+          }
+          return false;
+        }
+      } else {
+        oNode.setAttribute('obj', objstr);
+        oNode.setAttribute('title', gTitle);
+        oNode.setAttribute('id', obj.controlId);
+        html = `<span class="emr-field emr-field-left" style="${placeStyle}" contenteditable="false">[</span>`;
+        html += `<span class="emr-field emr-select-box">`
+        html += `<select style="display:none;">${$id('options-box').innerHTML}</select>`;
+        html += `<input type="text" name="${obj.controlId}"
+        multiple="${obj.multiple?'multiple':''}" ${obj.dataSource} 
+        filterable="${(obj.dataSource=="interface"&&obj.filterable)?'filterable':''}"
+        ${((obj.dataSource=="interface"&&obj.filterable) || obj.isInput)?'':'readonly'}
+        validation="${obj.textValidation}" contenteditable="false"  
+        class="emr-field emr-field-value emr-select-input"  
+        autocomplete="off"
+        data-valname="${obj.dataSource=="interface"?obj.valName:''}"
+        data-optionname="${obj.dataSource=="interface"?obj.optionName:''}"
+        data-url="${obj.dataSource=="interface"?obj.interfaceWeb:''}"
+        style="${style}" value=""></input><span class="emr-field emr-select-tags"></span>`
+        html += `</span>`;
+        html += `<span class="emr-field emr-field-right" style="${placeStyle}" contenteditable="false">]</span>`;
+        oNode.innerHTML = html;
+        delete UE.plugins[thePlugin].editdom;
+        window.parent.document.getElementById('ueditor_0').contentWindow.emrSelect.init()
+        return true;
+      }
+    }
+  
+    $id("dataSource").onchange = function changeDataSource(){
+      Array.prototype.forEach.call($class("data-sorce-setup"), function(item){
+        item.style.display="none"
+      })
+      $id(this.value+"Setup").style.display="table-row"
+    }
+  
+    function changeIsInput(){
+      let isInputNode = document.getElementsByName('isInput')
+      if(isInputNode[0].checked){
+        document.getElementById('isPutKey').style.display = "none";
+      }else{
+        document.getElementById('isPutKey').style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

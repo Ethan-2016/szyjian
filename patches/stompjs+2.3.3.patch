@@ -1,0 +1,19 @@
+diff --git a/node_modules/stompjs/lib/stomp.js b/node_modules/stompjs/lib/stomp.js
+index 6329e1a..c1857c3 100644
+--- a/node_modules/stompjs/lib/stomp.js
++++ b/node_modules/stompjs/lib/stomp.js
+@@ -129,10 +129,10 @@
+       this.subscriptions = {};
+     }
+ 
+-    Client.prototype.debug = function(message) {
+-      var _ref;
+-      return typeof window !== "undefined" && window !== null ? (_ref = window.console) != null ? _ref.log(message) : void 0 : void 0;
+-    };
++    // Client.prototype.debug = function(message) {
++    //   var _ref;
++    //   return typeof window !== "undefined" && window !== null ? (_ref = window.console) != null ? _ref.log(message) : void 0 : void 0;
++    // };
+ 
+     now = function() {
+       if (Date.now) {
