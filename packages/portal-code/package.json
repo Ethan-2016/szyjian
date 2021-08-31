@@ -1,6 +1,6 @@
 {
   "name": "yijian.portal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "local": "vue-cli-service serve --mode local",
