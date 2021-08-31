@@ -6,7 +6,7 @@
 import {
     Message
 } from "element-ui";
-import triageApi from "@/benchs/previewTriage/api/triageApi";
+// import triageApi from "@/benchs/previewTriage/api/triageApi";
 let previewTriage = {
     state: {
         temporaryTotal: 0, //分诊暂存总人数

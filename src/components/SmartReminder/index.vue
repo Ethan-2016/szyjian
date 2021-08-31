@@ -5,7 +5,7 @@
        ref="smartReminderWrap" 
        v-show="reminderVisibleShow">
             <div class="top-wrap">
-                <img src="@/benchs/icis/assets/img/icons/尚哲智能提醒.png" alt="尚哲智能提醒">
+                <!-- <img src="@/benchs/icis/assets/img/icons/尚哲智能提醒.png" alt="尚哲智能提醒"> -->
                 <div class="top-title">
                     <span>尚哲智能提醒</span>
                     <i class="el-icon-error" @click="clickClose"></i>
